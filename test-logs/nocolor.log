@@ -1,0 +1,6 @@
+0:00:00.007773544  8874 0x558951015c00 INFO                GST_INIT gst.c:510:init_pre: Initializing GStreamer Core Library version 1.10.4
+0:00:01.007927372  8874 0x558951015c00 DEBUG             GST_MEMORY gstallocator.c:592:_priv_gst_allocator_initialize: memory alignment: 7
+0:00:23.008032206  8874 0x558951015c00 TRACE        GST_REFCOUNTING gstobject.c:220:gst_object_init:<GstObject@0x55895101d040> 0x55895101d040 new
+0:01:10.008043265  8874 0x558951015c00 DEBUG             GST_MEMORY gstallocator.c:568:gst_allocator_sysmem_init: init allocator 0x55895101d040
+0:11:20.008067915  8874 0x558951015c00 TRACE        GST_REFCOUNTING gstobject.c:249:gst_object_ref:<allocatorsysmem0> 0x55895101d040 ref 1->2
+1:30:47.008078203  8874 0x558951015c00 DEBUG             GST_MEMORY gstallocator.c:210:gst_allocator_register: registering allocator 0x55895101d040 with name "SystemMemory"

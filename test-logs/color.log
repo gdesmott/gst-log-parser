@@ -1,0 +1,14 @@
+0:00:00.000208614 [336m17267[00m      0x2192200 [36mINFO   [00m [00;01;31m            GST_INIT gst.c:584:init_pre:[00m Initializing GStreamer Core Library version 1.13.0.1
+0:00:00.000303732 [336m17267[00m      0x2192200 [36mINFO   [00m [00;01;31m            GST_INIT gst.c:585:init_pre:[00m Using library installed in /usr/local/lib64
+0:00:00.000325904 [336m17267[00m      0x2192200 [36mINFO   [00m [00;01;31m            GST_INIT gst.c:605:init_pre:[00m Linux cass-x230 4.12.14-200.fc25.x86_64 #1 SMP Wed Sep 20 16:40:50 UTC 2017 x86_64
+0:00:00.000462552 [336m17267[00m      0x2192200 [37mDEBUG  [00m [00;01;34m          GST_MEMORY gstallocator.c:593:_priv_gst_allocator_initialize:[00m memory alignment: 7
+0:00:00.000613771 [336m17267[00m      0x2192200 [37mDEBUG  [00m [00;01;34m          GST_MEMORY gstallocator.c:569:gst_allocator_sysmem_init:[00m init allocator 0x2199040
+0:00:00.000660471 [336m17267[00m      0x2192200 [37mDEBUG  [00m [00;01;34m          GST_MEMORY gstallocator.c:211:gst_allocator_register:[00m registering allocator 0x2199040 with name "SystemMemory"
+0:00:00.000752877 [336m17267[00m      0x2192200 [36mINFO   [00m [00;01;31m            GST_INIT gstmessage.c:127:_priv_gst_message_initialize:[00m init messages
+0:00:00.000869151 [336m17267[00m      0x2192200 [37mDEBUG  [00m [00;01;37;41m    GST_ELEMENT_PADS gstelement.c:302:gst_element_base_class_init:[00m type GstElement : factory (nil)
+0:00:00.000898419 [336m17267[00m      0x2192200 [37mDEBUG  [00m [00;04m             default gstelement.c:195:gst_element_setup_thread_pool:[00m creating element thread pool
+0:00:00.000949407 [336m17267[00m      0x2192200 [37mDEBUG  [00m [00;01;37;41m    GST_ELEMENT_PADS gstelement.c:302:gst_element_base_class_init:[00m type GstBin : factory (nil)
+0:00:00.001369765 [336m17267[00m      0x2192200 [36mINFO   [00m [00;01;31m            GST_INIT gstcontext.c:84:_priv_gst_context_initialize:[00m init contexts
+0:00:00.001548143 [336m17267[00m      0x2192200 [36mINFO   [00m [00;01;36m  GST_PLUGIN_LOADING gstplugin.c:317:_priv_gst_plugin_initialize:[00m registering 0 static plugins
+0:00:00.001564433 [336m17267[00m      0x2192200 [33;01mLOG    [00m [00;01;36m  GST_PLUGIN_LOADING gstplugin.c:222:gst_plugin_register_static:[00m attempting to load static plugin "staticelements" now...
+0:00:00.001598282 [336m17267[00m      0x2192200 [33;01mLOG    [00m [00;01;36m  GST_PLUGIN_LOADING gstplugin.c:506:gst_plugin_register_func:[00m plugin "(NULL)" looks good
