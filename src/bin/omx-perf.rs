@@ -1,5 +1,4 @@
 // Generate input logs with: GST_DEBUG="OMX_PERFORMANCE:8"
-use std::env;
 use std::fs::File;
 use std::io::Write;
 use std::process::exit;
@@ -7,16 +6,25 @@ use std::process::exit;
 extern crate gst_log_parser;
 use gst_log_parser::parse;
 
-fn usage () {
-    println!("Usage: {} INPUT OUTPUT", env::args().nth(0).unwrap());
+extern crate structopt;
+#[macro_use]
+extern crate structopt_derive;
+use structopt::StructOpt;
+
+#[derive(StructOpt)]
+#[structopt(name = "dump", about = "Parse a GStreamer log file and dump its content. Mostly used for testing")]
+struct Opt {
+    #[structopt(help = "Input file")]
+    input: String,
+    #[structopt(help = "Output file")]
+    output: String,
 }
 
+
 fn generate() -> Result<bool, std::io::Error> {
-    let mut args = env::args();
-    let in_path = args.nth(1).expect("Missing input");
-    let input = File::open(in_path)?;
-    let out_path = args.nth(0).expect("Missing output");
-    let mut output = (File::create(&out_path))?;
+    let opt = Opt::from_args();
+    let input = File::open(opt.input)?;
+    let mut output = (File::create(&opt.output))?;
 
     let parsed = parse(input).filter(|entry| {
         entry.category == "OMX_PERFORMANCE"
@@ -32,13 +40,12 @@ fn generate() -> Result<bool, std::io::Error> {
         }
     }
 
-    println!("Generated {}", out_path);
+    println!("Generated {}", opt.output);
     Ok(true)
 }
 
 fn main() {
-    if env::args().count() != 3 || generate().is_err() {
-        usage();
+    if generate().is_err() {
         exit(1);
     }
 }
