@@ -8,7 +8,7 @@ extern crate itertools;
 use itertools::join;
 
 extern crate gstreamer as gst;
-use gst::{DebugLevel, SECOND};
+use gst::{DebugLevel, ClockTime};
 
 #[macro_use]
 extern crate lazy_static;
@@ -19,7 +19,7 @@ use regex::Regex;
 pub struct ParsingError;
 
 pub struct Entry {
-    pub ts: u64,
+    pub ts: ClockTime,
     pub pid: u32,
     pub thread: String,
     pub level: DebugLevel,
@@ -45,7 +45,7 @@ fn parse_debug_level(s: &str) -> Result<DebugLevel, ParsingError> {
     }
 }
 
-fn parse_time(ts: &str) -> u64 {
+fn parse_time(ts: &str) -> ClockTime {
     let mut split = ts.splitn(3, ':');
     let h: u64 = split.next().expect("missing hour").parse().expect(
         "invalid hour",
@@ -61,7 +61,7 @@ fn parse_time(ts: &str) -> u64 {
         "invalid sub second",
     );
 
-    (h * 60 * 60 + m * 60) * SECOND + secs * SECOND + subsecs
+    ClockTime::from_seconds(h * 60 * 60 + m * 60 + secs) + ClockTime::from_nseconds(subsecs)
 }
 
 fn split_location(location: &str) -> (String, u32, String, Option<String>) {
@@ -124,19 +124,6 @@ impl Entry {
             message: message,
         }
     }
-
-    pub fn ts_format(&self) -> String {
-        let secs: u64;
-
-        secs = self.ts / SECOND;
-        format!(
-            "{}:{:02}:{:02}.{:09}",
-            secs / (60 * 60),
-            (secs / 60) % 60,
-            secs % 60,
-            self.ts % SECOND
-        )
-    }
 }
 
 impl fmt::Display for Entry {
@@ -144,7 +131,7 @@ impl fmt::Display for Entry {
         write!(
             f,
             "{}  {} {} {:?} {} {}:{}:{}:<{}> {}",
-            self.ts_format(),
+            self.ts,
             self.pid,
             self.thread,
             self.level,
@@ -196,8 +183,8 @@ mod tests {
         let mut parsed = parse(f);
 
         let entry = parsed.next().expect("First entry missing");
-        assert_eq!(entry.ts, 7773544);
-        assert_eq!(entry.ts_format(), "0:00:00.007773544");
+        assert_eq!(entry.ts.nanoseconds().unwrap(), 7773544);
+        assert_eq!(format!("{}", entry.ts), "00:00:00.007773544");
         assert_eq!(entry.pid, 8874);
         assert_eq!(entry.thread, "0x558951015c00");
         assert_eq!(entry.level, DebugLevel::Info);
@@ -221,8 +208,8 @@ mod tests {
         let mut parsed = parse(f);
 
         let entry = parsed.next().expect("First entry missing");
-        assert_eq!(entry.ts, 208614);
-        assert_eq!(entry.ts_format(), "0:00:00.000208614");
+        assert_eq!(entry.ts.nanoseconds().unwrap(), 208614);
+        assert_eq!(format!("{}", entry.ts), "00:00:00.000208614");
         assert_eq!(entry.pid, 17267);
         assert_eq!(entry.thread, "0x2192200");
         assert_eq!(entry.level, DebugLevel::Info);

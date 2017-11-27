@@ -35,8 +35,9 @@ fn generate() -> Result<bool, std::io::Error> {
         // Extract the component name by taking the 4th last chars of the gst object name
         if let Some((i, _)) = object.char_indices().rev().nth(3) {
             let comp_name = &object[i..];
-            write!(output, "{}_{} 1 {}\n", comp_name, entry.message, entry.ts)?;
-            write!(output, "{}_{} 0 {}\n", comp_name, entry.message, entry.ts + 1)?;
+            let ts = entry.ts.nanoseconds().expect("missing ts");
+            write!(output, "{}_{} 1 {}\n", comp_name, entry.message, ts)?;
+            write!(output, "{}_{} 0 {}\n", comp_name, entry.message, ts + 1)?;
         }
     }
 
