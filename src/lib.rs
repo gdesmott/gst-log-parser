@@ -72,17 +72,19 @@ fn split_location(location: &str) -> (String, u32, String, Option<String>) {
     );
     let function = split.next().expect("missing function");
     let object = split.next().expect("missing object delimiter");
-    let object_name;
-    if object.len() > 0 {
-        let object = object
-            .to_string()
-            .trim_left_matches("<")
-            .trim_right_matches(">")
-            .to_string();
-        object_name = Some(object);
-    } else {
-        object_name = None;
-    }
+    let object_name = {
+        if object.len() > 0 {
+            let object = object
+                .to_string()
+                .trim_left_matches("<")
+                .trim_right_matches(">")
+                .to_string();
+
+            Some(object)
+        } else {
+            None
+        }
+    };
 
     (file.to_string(), line, function.to_string(), object_name)
 }
