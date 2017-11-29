@@ -12,3 +12,4 @@
 0:00:00.001548143 [336m17267[00m      0x2192200 [36mINFO   [00m [00;01;36m  GST_PLUGIN_LOADING gstplugin.c:317:_priv_gst_plugin_initialize:[00m registering 0 static plugins
 0:00:00.001564433 [336m17267[00m      0x2192200 [33;01mLOG    [00m [00;01;36m  GST_PLUGIN_LOADING gstplugin.c:222:gst_plugin_register_static:[00m attempting to load static plugin "staticelements" now...
 0:00:00.001598282 [336m17267[00m      0x2192200 [33;01mLOG    [00m [00;01;36m  GST_PLUGIN_LOADING gstplugin.c:506:gst_plugin_register_func:[00m plugin "(NULL)" looks good
+0:00:00.223498220 [333m 4394[00m   0x7f8c00bd90 [33;01mWARN   [00m [00m         omxvideodec gstomxvideodec.c:1790:gst_omx_video_dec_loop:<omxh264dec-omxh264dec0>[00m error: Unable to reconfigure output port

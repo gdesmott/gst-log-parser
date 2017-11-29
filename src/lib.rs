@@ -34,7 +34,7 @@ pub struct Entry {
 fn parse_debug_level(s: &str) -> Result<DebugLevel, ParsingError> {
     match s {
         "ERROR" => Ok(DebugLevel::Error),
-        "WARNING" => Ok(DebugLevel::Warning),
+        "WARN" => Ok(DebugLevel::Warning),
         "FIXME" => Ok(DebugLevel::Fixme),
         "INFO" => Ok(DebugLevel::Info),
         "DEBUG" => Ok(DebugLevel::Debug),
@@ -224,6 +224,6 @@ mod tests {
             "Initializing GStreamer Core Library version 1.13.0.1"
         );
 
-        assert_eq!(parsed.count(), 13);
+        assert_eq!(parsed.count(), 14);
     }
 }
