@@ -67,7 +67,7 @@ fn parse_time(ts: &str) -> ClockTime {
 fn split_location(location: &str) -> (String, u32, String, Option<String>) {
     let mut split = location.splitn(4, ":");
     let file = split.next().expect("missing file");
-    let line = split.next().expect("missing fine").parse().expect(
+    let line = split.next().expect("missing line").parse().expect(
         "invalid line",
     );
     let function = split.next().expect("missing function");
