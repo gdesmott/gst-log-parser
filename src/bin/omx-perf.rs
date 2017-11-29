@@ -12,7 +12,8 @@ extern crate structopt_derive;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
-#[structopt(name = "dump", about = "Parse a GStreamer log file and dump its content. Mostly used for testing")]
+#[structopt(name = "dump",
+            about = "Parse a GStreamer log file and dump its content. Mostly used for testing")]
 struct Opt {
     #[structopt(help = "Input file")]
     input: String,
@@ -26,9 +27,7 @@ fn generate() -> Result<bool, std::io::Error> {
     let input = File::open(opt.input)?;
     let mut output = (File::create(&opt.output))?;
 
-    let parsed = parse(input).filter(|entry| {
-        entry.category == "OMX_PERFORMANCE"
-    });
+    let parsed = parse(input).filter(|entry| entry.category == "OMX_PERFORMANCE");
 
     for entry in parsed {
         let object = entry.object.unwrap();

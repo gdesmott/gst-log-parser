@@ -9,7 +9,8 @@ extern crate structopt_derive;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
-#[structopt(name = "dump", about = "Parse a GStreamer log file and dump its content. Mostly used for testing")]
+#[structopt(name = "dump",
+            about = "Parse a GStreamer log file and dump its content. Mostly used for testing")]
 struct Opt {
     #[structopt(help = "Input file")]
     input: String,
