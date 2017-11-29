@@ -12,8 +12,7 @@ extern crate structopt_derive;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
-#[structopt(name = "dump",
-            about = "Parse a GStreamer log file and dump its content. Mostly used for testing")]
+#[structopt(name = "omx-perf", about = "Generate a data file from OMX performance logs")]
 struct Opt {
     #[structopt(help = "Input file")]
     input: String,
