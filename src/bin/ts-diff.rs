@@ -79,13 +79,13 @@ fn generate() -> Result<bool, std::io::Error> {
     // Mark the top entries
     let n = entries.len() * opt.top / 100;
 
-    let entries = entries.into_iter().enumerate().map(
-        |(i, e)| if i < n as usize {
+    let entries = entries.into_iter().enumerate().map(|(i, e)| {
+        if i < n as usize {
             TsEntry::new_top(e)
         } else {
             e
-        },
-    );
+        }
+    });
 
     // Sort by ts
     let entries = entries

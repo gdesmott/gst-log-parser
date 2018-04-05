@@ -72,13 +72,11 @@ fn generate() -> Result<bool, std::io::Error> {
         println!("{}:", comp);
         println!(
             "\tInput (EmptyBufferDone/EmptyThisBuffer): {}/{}",
-            count.empty_done,
-            count.empty_call
+            count.empty_done, count.empty_call
         );
         println!(
             "\tOutput (FillBufferDone/FillThisBuffer):  {}/{}",
-            count.fill_done,
-            count.fill_call
+            count.fill_done, count.fill_call
         );
     }
 

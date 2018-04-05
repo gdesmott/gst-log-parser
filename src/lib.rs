@@ -8,7 +8,7 @@ extern crate itertools;
 use itertools::join;
 
 extern crate gstreamer as gst;
-use gst::{DebugLevel, ClockTime};
+use gst::{ClockTime, DebugLevel};
 
 #[macro_use]
 extern crate lazy_static;
@@ -47,19 +47,27 @@ fn parse_debug_level(s: &str) -> Result<DebugLevel, ParsingError> {
 
 fn parse_time(ts: &str) -> ClockTime {
     let mut split = ts.splitn(3, ':');
-    let h: u64 = split.next().expect("missing hour").parse().expect(
-        "invalid hour",
-    );
-    let m: u64 = split.next().expect("missing minute").parse().expect(
-        "invalid minute",
-    );
+    let h: u64 = split
+        .next()
+        .expect("missing hour")
+        .parse()
+        .expect("invalid hour");
+    let m: u64 = split
+        .next()
+        .expect("missing minute")
+        .parse()
+        .expect("invalid minute");
     split = split.next().expect("missing second").splitn(2, '.');
-    let secs: u64 = split.next().expect("missing second").parse().expect(
-        "invalid second",
-    );
-    let subsecs: u64 = split.next().expect("missing sub second").parse().expect(
-        "invalid sub second",
-    );
+    let secs: u64 = split
+        .next()
+        .expect("missing second")
+        .parse()
+        .expect("invalid second");
+    let subsecs: u64 = split
+        .next()
+        .expect("missing sub second")
+        .parse()
+        .expect("invalid sub second");
 
     ClockTime::from_seconds(h * 60 * 60 + m * 60 + secs) + ClockTime::from_nseconds(subsecs)
 }
@@ -67,9 +75,11 @@ fn parse_time(ts: &str) -> ClockTime {
 fn split_location(location: &str) -> (String, u32, String, Option<String>) {
     let mut split = location.splitn(4, ":");
     let file = split.next().expect("missing file");
-    let line = split.next().expect("missing line").parse().expect(
-        "invalid line",
-    );
+    let line = split
+        .next()
+        .expect("missing line")
+        .parse()
+        .expect("invalid line");
     let function = split.next().expect("missing function");
     let object = split.next().expect("missing object delimiter");
     let object_name = {
@@ -100,9 +110,10 @@ impl Entry {
         let mut it = line.split(" ");
         let ts = parse_time(it.next().expect("Missing ts"));
         let mut it = it.skip_while(|x| x.is_empty());
-        let pid = it.next().expect("Missing PID").parse().expect(
-            "Failed to parse PID",
-        );
+        let pid = it.next()
+            .expect("Missing PID")
+            .parse()
+            .expect("Failed to parse PID");
         let mut it = it.skip_while(|x| x.is_empty());
         let thread = it.next().expect("Missing thread").to_string();
         let mut it = it.skip_while(|x| x.is_empty());
