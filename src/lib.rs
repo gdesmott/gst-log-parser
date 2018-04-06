@@ -8,7 +8,7 @@ extern crate itertools;
 use itertools::join;
 
 extern crate gstreamer as gst;
-use gst::{ClockTime, DebugLevel};
+use gst::{ClockTime, DebugLevel, Structure};
 
 #[macro_use]
 extern crate lazy_static;
@@ -137,6 +137,10 @@ impl Entry {
             message: message,
         }
     }
+
+    pub fn message_to_struct(&self) -> Option<Structure> {
+        Structure::from_string(&self.message)
+    }
 }
 
 impl fmt::Display for Entry {
@@ -180,6 +184,8 @@ impl<R: Read> Iterator for ParserIterator<R> {
 }
 
 pub fn parse<R: Read>(r: R) -> ParserIterator<R> {
+    gst::init().expect("Failed to initialize gst");
+
     let file = BufReader::new(r);
 
     ParserIterator::new(file.lines())
