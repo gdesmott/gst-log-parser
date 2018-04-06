@@ -48,17 +48,21 @@ fn generate() -> Result<bool, std::io::Error> {
     let mut counts: HashMap<String, Count> = HashMap::new();
 
     for entry in parsed {
+        let s = entry
+            .message_to_struct()
+            .expect("Failed to parse structure");
         let object = entry.object.unwrap();
         // Extract the component name by taking the 4th last chars of the gst object name
         if let Some((i, _)) = object.char_indices().rev().nth(3) {
             let comp_name = &object[i..];
             let ts = entry.ts.nanoseconds().expect("missing ts");
-            write!(output, "{}_{} 1 {}\n", comp_name, entry.message, ts)?;
-            write!(output, "{}_{} 0 {}\n", comp_name, entry.message, ts + 1)?;
+            let event = s.get_name();
+            write!(output, "{}_{} 1 {}\n", comp_name, event, ts)?;
+            write!(output, "{}_{} 0 {}\n", comp_name, event, ts + 1)?;
 
             let count = counts.entry(comp_name.to_string()).or_insert(Count::new());
 
-            match entry.message.as_ref() {
+            match event {
                 "EmptyThisBuffer" => count.empty_call += 1,
                 "EmptyBufferDone" => count.empty_done += 1,
                 "FillThisBuffer" => count.fill_call += 1,
