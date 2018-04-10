@@ -88,7 +88,17 @@ fn generate() -> Result<bool, std::io::Error> {
         }
     }
 
-    let frames = frames.values();
+    // Filter out frames still in OMX components
+    let frames = frames.values().filter(|f| {
+        for c in f.components.values() {
+            if c.out_ts.is_none() {
+                return false;
+            }
+        }
+        true
+    });
+
+    // Sort by ts
     let frames = frames.sorted_by(|a, b| a.omx_ts.cmp(&b.omx_ts));
 
     for frame in frames {
