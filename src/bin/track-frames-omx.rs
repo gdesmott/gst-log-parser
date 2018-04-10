@@ -23,15 +23,15 @@ struct Opt {
     input: String,
 }
 
-struct Component {
+struct FrameInComponent {
     name: String,
     in_ts: ClockTime,
     out_ts: ClockTime,
 }
 
-impl Component {
-    fn new(name: &str) -> Component {
-        Component {
+impl FrameInComponent {
+    fn new(name: &str) -> FrameInComponent {
+        FrameInComponent {
             name: name.to_string(),
             in_ts: ClockTime::none(),
             out_ts: ClockTime::none(),
@@ -41,7 +41,7 @@ impl Component {
 
 struct Frame {
     omx_ts: u64,
-    components: HashMap<String, Component>,
+    components: HashMap<String, FrameInComponent>,
 }
 
 impl Frame {
@@ -74,7 +74,7 @@ fn generate() -> Result<bool, std::io::Error> {
             let comp = frame
                 .components
                 .entry(comp_name.to_string())
-                .or_insert(Component::new(comp_name));
+                .or_insert(FrameInComponent::new(comp_name));
 
             match event {
                 // input: take the ts of the first buffer
@@ -92,17 +92,19 @@ fn generate() -> Result<bool, std::io::Error> {
     let frames = frames.sorted_by(|a, b| a.omx_ts.cmp(&b.omx_ts));
 
     for frame in frames {
-        let comps = frame.components.values();
-        let comps = comps.sorted_by(|a, b| a.in_ts.cmp(&b.in_ts));
+        let fic = frame
+            .components
+            .values()
+            .sorted_by(|a, b| a.in_ts.cmp(&b.in_ts));
 
         print!("Frame: {} ", ClockTime::from_useconds(frame.omx_ts));
-        for c in comps {
+        for f in fic {
             print!(
                 "[{} in: {} out: {} 𝚫: {}] ",
-                c.name,
-                c.in_ts,
-                c.out_ts,
-                c.out_ts - c.in_ts
+                f.name,
+                f.in_ts,
+                f.out_ts,
+                f.out_ts - f.in_ts
             );
         }
         print!("\n");
