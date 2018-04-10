@@ -53,6 +53,29 @@ impl Frame {
     }
 }
 
+struct ComponentStats {
+    n: u64,
+    tot_processing_time: ClockTime,
+    // when the first/last buffer has been produced
+    ts_first_out: ClockTime,
+    ts_last_out: ClockTime,
+}
+
+impl ComponentStats {
+    fn new() -> ComponentStats {
+        ComponentStats {
+            n: 0,
+            tot_processing_time: ClockTime::from_nseconds(0),
+            ts_first_out: ClockTime::none(),
+            ts_last_out: ClockTime::none(),
+        }
+    }
+
+    fn average_processing_time(&self) -> ClockTime {
+        ClockTime::from_nseconds(self.tot_processing_time.nseconds().unwrap() / self.n)
+    }
+}
+
 fn generate() -> Result<bool, std::io::Error> {
     let opt = Opt::from_args();
     let input = File::open(opt.input)?;
@@ -100,6 +123,7 @@ fn generate() -> Result<bool, std::io::Error> {
 
     // Sort by ts
     let frames = frames.sorted_by(|a, b| a.omx_ts.cmp(&b.omx_ts));
+    let mut components: HashMap<String, ComponentStats> = HashMap::new();
 
     for frame in frames {
         let fic = frame
@@ -109,15 +133,37 @@ fn generate() -> Result<bool, std::io::Error> {
 
         print!("Frame: {} ", ClockTime::from_useconds(frame.omx_ts));
         for f in fic {
+            let comp = components
+                .entry(f.name.to_string())
+                .or_insert(ComponentStats::new());
+            let diff = f.out_ts - f.in_ts;
+
             print!(
                 "[{} in: {} out: {} 𝚫: {}] ",
-                f.name,
-                f.in_ts,
-                f.out_ts,
-                f.out_ts - f.in_ts
+                f.name, f.in_ts, f.out_ts, diff
             );
+
+            comp.tot_processing_time += diff;
+            comp.n += 1;
+
+            if comp.ts_first_out.is_none() {
+                comp.ts_first_out = f.out_ts;
+            }
+            comp.ts_last_out = f.out_ts;
         }
         print!("\n");
+    }
+
+    println!("");
+    for (name, comp) in components {
+        let avg = comp.average_processing_time();
+        let interval = comp.ts_last_out - comp.ts_first_out;
+        let rate = comp.n as f64 / interval.seconds().unwrap() as f64;
+
+        println!(
+            "{} : nb-frames: {} avg-time: {} rate: {:.2} fps",
+            name, comp.n, avg, rate
+        );
     }
 
     Ok(true)
