@@ -25,16 +25,18 @@ struct Opt {
 
 struct FrameInComponent {
     name: String,
-    in_ts: ClockTime,
-    out_ts: ClockTime,
+    // frame enters component (EmptyThisBuffer)
+    empty_ts: ClockTime,
+    // frame leaves component (FillBufferDone)
+    fill_done_ts: ClockTime,
 }
 
 impl FrameInComponent {
     fn new(name: &str) -> FrameInComponent {
         FrameInComponent {
             name: name.to_string(),
-            in_ts: ClockTime::none(),
-            out_ts: ClockTime::none(),
+            empty_ts: ClockTime::none(),
+            fill_done_ts: ClockTime::none(),
         }
     }
 }
@@ -101,11 +103,11 @@ fn generate() -> Result<bool, std::io::Error> {
 
             match event {
                 // input: take the ts of the first buffer
-                "EmptyThisBuffer" => if comp.in_ts.is_none() {
-                    comp.in_ts = entry.ts
+                "EmptyThisBuffer" => if comp.empty_ts.is_none() {
+                    comp.empty_ts = entry.ts
                 },
                 // output: take the ts of the latest buffer
-                "FillBufferDone" => comp.out_ts = entry.ts,
+                "FillBufferDone" => comp.fill_done_ts = entry.ts,
                 _ => {}
             }
         }
@@ -114,7 +116,7 @@ fn generate() -> Result<bool, std::io::Error> {
     // Filter out frames still in OMX components
     let frames = frames.values().filter(|f| {
         for c in f.components.values() {
-            if c.out_ts.is_none() {
+            if c.fill_done_ts.is_none() {
                 return false;
             }
         }
@@ -129,27 +131,27 @@ fn generate() -> Result<bool, std::io::Error> {
         let fic = frame
             .components
             .values()
-            .sorted_by(|a, b| a.in_ts.cmp(&b.in_ts));
+            .sorted_by(|a, b| a.empty_ts.cmp(&b.empty_ts));
 
         print!("Frame: {} ", ClockTime::from_useconds(frame.omx_ts));
         for f in fic {
             let comp = components
                 .entry(f.name.to_string())
                 .or_insert(ComponentStats::new());
-            let diff = f.out_ts - f.in_ts;
+            let diff = f.fill_done_ts - f.empty_ts;
 
             print!(
                 "[{} in: {} out: {} 𝚫: {}] ",
-                f.name, f.in_ts, f.out_ts, diff
+                f.name, f.empty_ts, f.fill_done_ts, diff
             );
 
             comp.tot_processing_time += diff;
             comp.n += 1;
 
             if comp.ts_first_out.is_none() {
-                comp.ts_first_out = f.out_ts;
+                comp.ts_first_out = f.fill_done_ts;
             }
-            comp.ts_last_out = f.out_ts;
+            comp.ts_last_out = f.fill_done_ts;
         }
         print!("\n");
     }
