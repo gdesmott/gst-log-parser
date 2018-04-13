@@ -23,24 +23,41 @@ struct Opt {
     input: String,
 }
 
+#[derive(Debug)]
 struct FrameInComponent {
     name: String,
-    // frame enters component (EmptyThisBuffer)
-    empty_ts: ClockTime,
-    // frame leaves component (FillBufferDone)
-    fill_done_ts: ClockTime,
+
+    // enters component (EmptyThisBuffer)
+    empty_ts: Vec<ClockTime>,
+    // leaves component (FillBufferDone)
+    fill_done_ts: Vec<ClockTime>,
 }
 
 impl FrameInComponent {
     fn new(name: &str) -> FrameInComponent {
         FrameInComponent {
             name: name.to_string(),
-            empty_ts: ClockTime::none(),
-            fill_done_ts: ClockTime::none(),
+            empty_ts: Vec::new(),
+            fill_done_ts: Vec::new(),
         }
+    }
+
+    // ts when first buffer of the frame entered the OMX component
+    fn first_buffer_enter_ts (&self) -> ClockTime {
+        self.empty_ts[0]
+    }
+
+    // ts when last buffer of the frame left the OMX component
+    fn last_buffer_left_ts (&self) -> ClockTime {
+        *self.fill_done_ts.last().unwrap()
+    }
+
+    fn total_time (&self) -> ClockTime {
+        self.last_buffer_left_ts() - self.first_buffer_enter_ts()
     }
 }
 
+#[derive(Debug)]
 struct Frame {
     omx_ts: u64,
     components: HashMap<String, FrameInComponent>,
@@ -55,6 +72,7 @@ impl Frame {
     }
 }
 
+#[derive(Debug)]
 struct ComponentStats {
     n: u64,
     tot_processing_time: ClockTime,
@@ -78,6 +96,7 @@ impl ComponentStats {
     }
 }
 
+#[derive(Debug)]
 struct CbTime {
     fill_done_ts: ClockTime,
     fill_done_tot: ClockTime,
@@ -141,13 +160,14 @@ fn generate() -> Result<bool, std::io::Error> {
             let cb = cbs.entry(comp_name.to_string()).or_insert(CbTime::new());
 
             match event {
-                // input: take the ts of the first buffer
-                "EmptyThisBuffer" => if comp.empty_ts.is_none() {
-                    comp.empty_ts = entry.ts
+                // input
+                "EmptyThisBuffer" => {
+                    comp.empty_ts.push(entry.ts);
                 },
-                // output: take the ts of the latest buffer
+                // output
                 "FillBufferDone" => {
-                    comp.fill_done_ts = entry.ts;
+                    // TODO: skip empty
+                    comp.fill_done_ts.push(entry.ts);
                     cb.fill_done_ts = entry.ts;
                 }
                 "FillBufferDone-FINISHED" => {
@@ -175,7 +195,7 @@ fn generate() -> Result<bool, std::io::Error> {
     // Filter out frames still in OMX components
     let frames = frames.values().filter(|f| {
         for c in f.components.values() {
-            if c.fill_done_ts.is_none() {
+            if c.fill_done_ts.len() == 0 {
                 return false;
             }
         }
@@ -190,27 +210,27 @@ fn generate() -> Result<bool, std::io::Error> {
         let fic = frame
             .components
             .values()
-            .sorted_by(|a, b| a.empty_ts.cmp(&b.empty_ts));
+            .sorted_by(|a, b| a.empty_ts[0].cmp(&b.empty_ts[0]));
 
         print!("Frame: {} ", ClockTime::from_useconds(frame.omx_ts));
         for f in fic {
             let comp = components
                 .entry(f.name.to_string())
                 .or_insert(ComponentStats::new());
-            let diff = f.fill_done_ts - f.empty_ts;
+            let diff = f.total_time();
 
             print!(
                 "[{} in: {} out: {} 𝚫: {}] ",
-                f.name, f.empty_ts, f.fill_done_ts, diff
+                f.name, f.first_buffer_enter_ts(), f.last_buffer_left_ts(), diff
             );
 
             comp.tot_processing_time += diff;
             comp.n += 1;
 
             if comp.ts_first_out.is_none() {
-                comp.ts_first_out = f.fill_done_ts;
+                comp.ts_first_out = f.last_buffer_left_ts();
             }
-            comp.ts_last_out = f.fill_done_ts;
+            comp.ts_last_out = f.last_buffer_left_ts();
         }
         print!("\n");
     }
