@@ -78,12 +78,50 @@ impl ComponentStats {
     }
 }
 
+struct CbTime {
+    fill_done_ts: ClockTime,
+    fill_done_tot: ClockTime,
+    fill_done_max: ClockTime,
+    fill_done_n: u64,
+
+    empty_done_ts: ClockTime,
+    empty_done_tot: ClockTime,
+    empty_done_max: ClockTime,
+    empty_done_n: u64,
+}
+
+impl CbTime {
+    fn new() -> CbTime {
+        CbTime {
+            fill_done_ts: ClockTime::none(),
+            fill_done_tot: ClockTime::from_nseconds(0),
+            fill_done_max: ClockTime::from_nseconds(0),
+            fill_done_n: 0,
+
+            empty_done_ts: ClockTime::none(),
+            empty_done_tot: ClockTime::from_nseconds(0),
+            empty_done_max: ClockTime::from_nseconds(0),
+            empty_done_n: 0,
+        }
+    }
+
+    fn fill_done_average(&self) -> ClockTime {
+        ClockTime::from_nseconds(self.fill_done_tot.nseconds().unwrap() / self.fill_done_n)
+    }
+
+    fn empty_done_average(&self) -> ClockTime {
+        ClockTime::from_nseconds(self.empty_done_tot.nseconds().unwrap() / self.empty_done_n)
+    }
+}
+
 fn generate() -> Result<bool, std::io::Error> {
     let opt = Opt::from_args();
     let input = File::open(opt.input)?;
     let parsed = parse(input).filter(|entry| entry.category == "OMX_PERFORMANCE");
 
     let mut frames: HashMap<u64, Frame> = HashMap::new();
+    // comp -> CbTime
+    let mut cbs: HashMap<String, CbTime> = HashMap::new();
 
     for entry in parsed {
         let s = entry.message_to_struct().expect("Failed to parse struct");
@@ -100,6 +138,7 @@ fn generate() -> Result<bool, std::io::Error> {
                 .components
                 .entry(comp_name.to_string())
                 .or_insert(FrameInComponent::new(comp_name));
+            let cb = cbs.entry(comp_name.to_string()).or_insert(CbTime::new());
 
             match event {
                 // input: take the ts of the first buffer
@@ -107,7 +146,27 @@ fn generate() -> Result<bool, std::io::Error> {
                     comp.empty_ts = entry.ts
                 },
                 // output: take the ts of the latest buffer
-                "FillBufferDone" => comp.fill_done_ts = entry.ts,
+                "FillBufferDone" => {
+                    comp.fill_done_ts = entry.ts;
+                    cb.fill_done_ts = entry.ts;
+                }
+                "FillBufferDone-FINISHED" => {
+                    let diff = entry.ts - cb.fill_done_ts;
+                    cb.fill_done_tot += diff;
+                    if cb.fill_done_max < diff {
+                        cb.fill_done_max = diff;
+                    }
+                    cb.fill_done_n += 1;
+                }
+                "EmptyBufferDone" => cb.empty_done_ts = entry.ts,
+                "EmptyBufferDone-FINISHED" => {
+                    let diff = entry.ts - cb.empty_done_ts;
+                    cb.empty_done_tot += diff;
+                    if cb.empty_done_max < diff {
+                        cb.empty_done_max = diff;
+                    }
+                    cb.empty_done_n += 1;
+                }
                 _ => {}
             }
         }
@@ -166,6 +225,30 @@ fn generate() -> Result<bool, std::io::Error> {
             "{} : nb-frames: {} avg-time: {} rate: {:.2} fps",
             name, comp.n, avg, rate
         );
+    }
+
+    println!("");
+    for (name, cb) in cbs {
+        if cb.empty_done_n > 0 {
+            println!(
+                "{} EmptyBufferDone n: {} tot: {} avg: {} max: {}",
+                name,
+                cb.empty_done_n,
+                cb.empty_done_tot,
+                cb.empty_done_average(),
+                cb.empty_done_max
+            );
+        }
+        if cb.fill_done_n > 0 {
+            println!(
+                "{} FillBufferDone n: {} tot: {} avg: {} max: {}",
+                name,
+                cb.fill_done_n,
+                cb.fill_done_tot,
+                cb.fill_done_average(),
+                cb.fill_done_max
+            );
+        }
     }
 
     Ok(true)
