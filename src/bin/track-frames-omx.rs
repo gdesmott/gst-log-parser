@@ -220,7 +220,7 @@ fn generate() -> Result<bool, std::io::Error> {
             let diff = f.total_time();
 
             print!(
-                "[{} in: {} out: {} 𝚫: {}] ",
+                "[{} fst-in: {} lst-out: {} 𝚫: {}] ",
                 f.name, f.first_buffer_enter_ts(), f.last_buffer_left_ts(), diff
             );
 
