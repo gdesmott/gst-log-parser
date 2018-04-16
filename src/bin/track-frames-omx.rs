@@ -43,17 +43,35 @@ impl FrameInComponent {
     }
 
     // ts when first buffer of the frame entered the OMX component
-    fn first_buffer_enter_ts (&self) -> ClockTime {
+    fn first_buffer_enter_ts(&self) -> ClockTime {
         self.empty_ts[0]
     }
 
+    // ts when last buffer of the frame entered the OMX component
+    fn last_buffer_enter_ts(&self) -> ClockTime {
+        *self.empty_ts.last().unwrap()
+    }
+
+    // ts when first buffer of the frame left the OMX component
+    fn first_buffer_left_ts(&self) -> ClockTime {
+        self.fill_done_ts[0]
+    }
+
     // ts when last buffer of the frame left the OMX component
-    fn last_buffer_left_ts (&self) -> ClockTime {
+    fn last_buffer_left_ts(&self) -> ClockTime {
         *self.fill_done_ts.last().unwrap()
     }
 
-    fn total_time (&self) -> ClockTime {
+    fn total_time(&self) -> ClockTime {
         self.last_buffer_left_ts() - self.first_buffer_enter_ts()
+    }
+
+    fn n_input(&self) -> usize {
+        self.empty_ts.len()
+    }
+
+    fn n_output(&self) -> usize {
+        self.fill_done_ts.len()
     }
 }
 
@@ -163,7 +181,7 @@ fn generate() -> Result<bool, std::io::Error> {
                 // input
                 "EmptyThisBuffer" => {
                     comp.empty_ts.push(entry.ts);
-                },
+                }
                 // output
                 "FillBufferDone" => {
                     // TODO: skip empty
@@ -220,9 +238,30 @@ fn generate() -> Result<bool, std::io::Error> {
             let diff = f.total_time();
 
             print!(
-                "[{} fst-in: {} lst-out: {} 𝚫: {}] ",
-                f.name, f.first_buffer_enter_ts(), f.last_buffer_left_ts(), diff
+                "\n\t[{} fst-in: {} lst-out: {} 𝚫: {}",
+                f.name,
+                f.first_buffer_enter_ts(),
+                f.last_buffer_left_ts(),
+                diff,
             );
+
+            if f.n_input() > 1 {
+                print!(
+                    " lst-in:  {} 𝚫: {}",
+                    f.last_buffer_enter_ts(),
+                    f.last_buffer_enter_ts() - f.first_buffer_enter_ts()
+                );
+            }
+
+            if f.n_output() > 1 {
+                print!(
+                    " fst-out: {} 𝚫: {}",
+                    f.first_buffer_left_ts(),
+                    f.last_buffer_left_ts() - f.first_buffer_left_ts()
+                );
+            }
+
+            print!("]");
 
             comp.tot_processing_time += diff;
             comp.n += 1;
