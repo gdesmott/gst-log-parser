@@ -2,3 +2,9 @@
 Simple Rust library to parse GStreamer logs.
 
 See [the examples](https://github.com/gdesmott/gst-log-parser/tree/master/src/bin) demonstrating how to use it.
+
+## Quick start
+
+- [Install Rust](https://www.rust-lang.org/en-US/install.html) if needed
+- `cargo build --release`
+- Parsing tools are available in `target/release/`
