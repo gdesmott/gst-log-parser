@@ -4,10 +4,10 @@ version = "0.1.0"
 authors = ["Guillaume Desmottes <guillaume@desmottes.be>"]
 
 [dependencies]
-itertools = "0.5.9"
+itertools = "0.7"
 gstreamer = "0.11"
-regex = "0.2"
-lazy_static = "0.2.9"
-structopt = "0.1.5"
-structopt-derive = "0.1.5"
+regex = "1.0"
+lazy_static = "1.0"
+structopt = "0.2"
+structopt-derive = "0.2"
 colored = "1.6"
