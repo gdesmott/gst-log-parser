@@ -1,6 +1,6 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::process::exit;
-use std::collections::HashMap;
 
 extern crate gst_log_parser;
 use gst_log_parser::parse;
@@ -20,13 +20,16 @@ extern crate structopt_derive;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
-#[structopt(name = "ts-diff",
-            about = "Display the timestamp difference between the previous entry from the thread")]
+#[structopt(
+    name = "ts-diff",
+    about = "Display the timestamp difference between the previous entry from the thread"
+)]
 struct Opt {
     #[structopt(help = "Input log file")]
     input: String,
-    #[structopt(short = "p", help = "Percentage of the longest entries to highlight",
-                default_value = "1")]
+    #[structopt(
+        short = "p", help = "Percentage of the longest entries to highlight", default_value = "1"
+    )]
     top: usize,
 }
 

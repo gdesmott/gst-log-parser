@@ -1,8 +1,8 @@
 // Generate input logs with: GST_DEBUG="OMX_PERFORMANCE:8"
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
 use std::process::exit;
-use std::collections::HashMap;
 
 extern crate gst_log_parser;
 use gst_log_parser::parse;

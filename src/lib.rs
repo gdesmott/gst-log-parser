@@ -1,8 +1,8 @@
-use std::io::BufReader;
-use std::io::BufRead;
-use std::io::Read;
-use std::io::Lines;
 use std::fmt;
+use std::io::BufRead;
+use std::io::BufReader;
+use std::io::Lines;
+use std::io::Read;
 use std::str;
 extern crate itertools;
 use itertools::join;
@@ -110,7 +110,8 @@ impl Entry {
         let mut it = line.split(" ");
         let ts = parse_time(it.next().expect("Missing ts"));
         let mut it = it.skip_while(|x| x.is_empty());
-        let pid = it.next()
+        let pid = it
+            .next()
             .expect("Missing PID")
             .parse()
             .expect("Failed to parse PID");
