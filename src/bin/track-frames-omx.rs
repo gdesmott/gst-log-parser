@@ -184,7 +184,11 @@ fn generate() -> Result<bool, std::io::Error> {
                 }
                 // output
                 "FillBufferDone" => {
-                    // TODO: skip empty
+                    // Ignore empty output buffers
+                    let filled: u32 = s.get("FilledLen").unwrap();
+                    if filled == 0 {
+                        continue;
+                    }
                     comp.fill_done_ts.push(entry.ts);
                     cb.fill_done_ts = entry.ts;
                 }
