@@ -13,7 +13,10 @@ extern crate structopt_derive;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
-#[structopt(name = "omx-perf", about = "Generate a data file from OMX performance logs")]
+#[structopt(
+    name = "omx-perf",
+    about = "Generate a data file from OMX performance logs"
+)]
 struct Opt {
     #[structopt(help = "Input file")]
     input: String,

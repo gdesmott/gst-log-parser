@@ -28,7 +28,9 @@ struct Opt {
     #[structopt(help = "Input log file")]
     input: String,
     #[structopt(
-        short = "p", help = "Percentage of the longest entries to highlight", default_value = "1"
+        short = "p",
+        help = "Percentage of the longest entries to highlight",
+        default_value = "1"
     )]
     top: usize,
 }

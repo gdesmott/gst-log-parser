@@ -17,7 +17,10 @@ extern crate structopt_derive;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
-#[structopt(name = "omx-ts", about = "Track progress of frames across OMX components")]
+#[structopt(
+    name = "omx-ts",
+    about = "Track progress of frames across OMX components"
+)]
 struct Opt {
     #[structopt(help = "Input file, generated with GST_DEBUG=\"OMX_API_TRACE:7\"")]
     input: String,
