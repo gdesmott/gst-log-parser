@@ -19,7 +19,7 @@ use structopt::StructOpt;
 #[derive(StructOpt)]
 #[structopt(name = "omx-ts", about = "Track progress of frames across OMX components")]
 struct Opt {
-    #[structopt(help = "Input file, generated with GST_DEBUG=\"OMX_PERFORMANCE:7\"")]
+    #[structopt(help = "Input file, generated with GST_DEBUG=\"OMX_API_TRACE:7\"")]
     input: String,
 }
 
@@ -154,7 +154,7 @@ impl CbTime {
 fn generate() -> Result<bool, std::io::Error> {
     let opt = Opt::from_args();
     let input = File::open(opt.input)?;
-    let parsed = parse(input).filter(|entry| entry.category == "OMX_PERFORMANCE");
+    let parsed = parse(input).filter(|entry| entry.category == "OMX_API_TRACE");
 
     let mut frames: HashMap<u64, Frame> = HashMap::new();
     // comp -> CbTime

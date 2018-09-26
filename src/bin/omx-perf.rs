@@ -1,4 +1,4 @@
-// Generate input logs with: GST_DEBUG="OMX_PERFORMANCE:8"
+// Generate input logs with: GST_DEBUG="OMX_API_TRACE:8"
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
@@ -44,7 +44,7 @@ fn generate() -> Result<bool, std::io::Error> {
     let input = File::open(opt.input)?;
     let mut output = (File::create(&opt.output))?;
 
-    let parsed = parse(input).filter(|entry| entry.category == "OMX_PERFORMANCE");
+    let parsed = parse(input).filter(|entry| entry.category == "OMX_API_TRACE");
     let mut counts: HashMap<String, Count> = HashMap::new();
 
     for entry in parsed {
