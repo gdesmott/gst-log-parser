@@ -7,6 +7,9 @@ use std::process::exit;
 extern crate gst_log_parser;
 use gst_log_parser::parse;
 
+extern crate gstreamer as gst;
+use gst::DebugLevel;
+
 extern crate structopt;
 #[macro_use]
 extern crate structopt_derive;
@@ -47,10 +50,12 @@ fn generate() -> Result<bool, std::io::Error> {
     let input = File::open(opt.input)?;
     let mut output = (File::create(&opt.output))?;
 
-    let parsed = parse(input).filter(|entry| entry.category == "OMX_API_TRACE");
+    let parsed = parse(input)
+        .filter(|entry| entry.category == "OMX_API_TRACE" && entry.level == DebugLevel::Trace);
     let mut counts: HashMap<String, Count> = HashMap::new();
 
     for entry in parsed {
+        println!("{}", entry);
         let s = entry
             .message_to_struct()
             .expect("Failed to parse structure");
