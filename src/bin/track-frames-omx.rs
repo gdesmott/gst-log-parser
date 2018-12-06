@@ -170,7 +170,12 @@ fn generate() -> Result<bool, std::io::Error> {
         if let Some((i, _)) = object.char_indices().rev().nth(3) {
             let comp_name = &object[i..];
 
-            let omx_ts: u64 = s.get("TimeStamp").unwrap();
+            let omx_ts = s.get("TimeStamp");
+            if omx_ts.is_none() {
+                continue;
+            }
+            let omx_ts = omx_ts.unwrap();
+
             let event = s.get_name();
 
             let frame = frames.entry(omx_ts).or_insert(Frame::new(omx_ts));
