@@ -12,7 +12,6 @@ extern crate itertools;
 use itertools::Itertools;
 
 extern crate structopt;
-#[macro_use]
 extern crate structopt_derive;
 use structopt::StructOpt;
 
@@ -87,7 +86,7 @@ struct Frame {
 impl Frame {
     fn new(omx_ts: u64) -> Frame {
         Frame {
-            omx_ts: omx_ts,
+            omx_ts,
             components: HashMap::new(),
         }
     }
@@ -178,12 +177,12 @@ fn generate() -> Result<bool, std::io::Error> {
 
             let event = s.get_name();
 
-            let frame = frames.entry(omx_ts).or_insert(Frame::new(omx_ts));
+            let frame = frames.entry(omx_ts).or_insert_with(|| Frame::new(omx_ts));
             let comp = frame
                 .components
                 .entry(comp_name.to_string())
-                .or_insert(FrameInComponent::new(comp_name));
-            let cb = cbs.entry(comp_name.to_string()).or_insert(CbTime::new());
+                .or_insert_with(|| FrameInComponent::new(comp_name));
+            let cb = cbs.entry(comp_name.to_string()).or_insert_with(CbTime::new);
 
             match event {
                 // input
@@ -225,7 +224,7 @@ fn generate() -> Result<bool, std::io::Error> {
     // Filter out frames still in OMX components
     let frames = frames.values().filter(|f| {
         for c in f.components.values() {
-            if c.fill_done_ts.len() == 0 {
+            if c.fill_done_ts.is_empty() {
                 return false;
             }
         }
@@ -246,7 +245,7 @@ fn generate() -> Result<bool, std::io::Error> {
         for f in fic {
             let comp = components
                 .entry(f.name.to_string())
-                .or_insert(ComponentStats::new());
+                .or_insert_with(ComponentStats::new);
             let diff = f.total_time();
 
             print!(
@@ -283,10 +282,10 @@ fn generate() -> Result<bool, std::io::Error> {
             }
             comp.ts_last_out = f.last_buffer_left_ts();
         }
-        print!("\n");
+        println!();
     }
 
-    println!("");
+    println!();
     for (name, comp) in components {
         let avg = comp.average_processing_time();
         let interval = comp.ts_last_out - comp.ts_first_out;
@@ -298,7 +297,7 @@ fn generate() -> Result<bool, std::io::Error> {
         );
     }
 
-    println!("");
+    println!();
     for (name, cb) in cbs {
         if cb.empty_done_n > 0 {
             println!(
