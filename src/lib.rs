@@ -73,7 +73,7 @@ fn parse_time(ts: &str) -> ClockTime {
 }
 
 fn split_location(location: &str) -> (String, u32, String, Option<String>) {
-    let mut split = location.splitn(4, ":");
+    let mut split = location.splitn(4, ':');
     let file = split.next().expect("missing file");
     let line = split
         .next()
@@ -83,11 +83,11 @@ fn split_location(location: &str) -> (String, u32, String, Option<String>) {
     let function = split.next().expect("missing function");
     let object = split.next().expect("missing object delimiter");
     let object_name = {
-        if object.len() > 0 {
+        if !object.is_empty() {
             let object = object
                 .to_string()
-                .trim_left_matches("<")
-                .trim_right_matches(">")
+                .trim_left_matches('<')
+                .trim_right_matches('>')
                 .to_string();
 
             Some(object)
@@ -100,14 +100,14 @@ fn split_location(location: &str) -> (String, u32, String, Option<String>) {
 }
 
 impl Entry {
-    fn new(line: String) -> Entry {
+    fn new(line: &str) -> Entry {
         // Strip color codes
         lazy_static! {
             static ref RE: Regex = Regex::new("\x1b\\[[0-9;]*m").unwrap();
         }
         let line = RE.replace_all(&line, "");
 
-        let mut it = line.split(" ");
+        let mut it = line.split(' ');
         let ts = parse_time(it.next().expect("Missing ts"));
         let mut it = it.skip_while(|x| x.is_empty());
         let pid = it
@@ -126,16 +126,16 @@ impl Entry {
         let message: String = join(it, " ");
 
         Entry {
-            ts: ts,
-            pid: pid,
-            thread: thread,
-            level: level,
-            category: category,
-            file: file,
-            line: line,
-            function: function,
-            object: object,
-            message: message,
+            ts,
+            pid,
+            thread,
+            level,
+            category,
+            file,
+            line,
+            function,
+            object,
+            message,
         }
     }
 
@@ -157,7 +157,7 @@ impl fmt::Display for Entry {
             self.file,
             self.line,
             self.function,
-            self.object.clone().unwrap_or("".to_string()),
+            self.object.clone().unwrap_or_else(|| "".to_string()),
             self.message
         )
     }
@@ -169,7 +169,7 @@ pub struct ParserIterator<R: Read> {
 
 impl<R: Read> ParserIterator<R> {
     fn new(lines: Lines<BufReader<R>>) -> Self {
-        Self { lines: lines }
+        Self { lines }
     }
 }
 
@@ -179,7 +179,7 @@ impl<R: Read> Iterator for ParserIterator<R> {
     fn next(&mut self) -> Option<Entry> {
         match self.lines.next() {
             None => None,
-            Some(line) => Some(Entry::new(line.unwrap())),
+            Some(line) => Some(Entry::new(&line.unwrap())),
         }
     }
 }
