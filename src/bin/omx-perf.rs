@@ -11,7 +11,6 @@ extern crate gstreamer as gst;
 use gst::DebugLevel;
 
 extern crate structopt;
-#[macro_use]
 extern crate structopt_derive;
 use structopt::StructOpt;
 
@@ -64,7 +63,9 @@ fn generate() -> Result<bool, std::io::Error> {
         if let Some((i, _)) = object.char_indices().rev().nth(3) {
             let comp_name = &object[i..];
             let event = s.get_name();
-            let count = counts.entry(comp_name.to_string()).or_insert(Count::new());
+            let count = counts
+                .entry(comp_name.to_string())
+                .or_insert_with(Count::new);
 
             match event {
                 "EmptyThisBuffer" => count.empty_call += 1,
@@ -75,8 +76,8 @@ fn generate() -> Result<bool, std::io::Error> {
             }
 
             let ts = entry.ts.nanoseconds().expect("missing ts");
-            write!(output, "{}_{} 1 {}\n", comp_name, event, ts)?;
-            write!(output, "{}_{} 0 {}\n", comp_name, event, ts + 1)?;
+            writeln!(output, "{}_{} 1 {}", comp_name, event, ts)?;
+            writeln!(output, "{}_{} 0 {}", comp_name, event, ts + 1)?;
         }
     }
 
