@@ -4,7 +4,6 @@ extern crate gst_log_parser;
 use gst_log_parser::parse;
 
 extern crate structopt;
-#[macro_use]
 extern crate structopt_derive;
 use structopt::StructOpt;
 
