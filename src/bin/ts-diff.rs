@@ -15,7 +15,6 @@ extern crate itertools;
 use itertools::Itertools;
 
 extern crate structopt;
-#[macro_use]
 extern crate structopt_derive;
 use structopt::StructOpt;
 
@@ -44,8 +43,8 @@ struct TsEntry {
 impl TsEntry {
     fn new(entry: gst_log_parser::Entry, diff: ClockTime) -> TsEntry {
         TsEntry {
-            entry: entry,
-            diff: diff,
+            entry,
+            diff,
             top: false,
         }
     }
@@ -117,7 +116,7 @@ fn generate() -> Result<bool, std::io::Error> {
             e.entry.file,
             e.entry.line,
             e.entry.function,
-            e.entry.object.clone().unwrap_or("".to_string()),
+            e.entry.object.clone().unwrap_or_else(|| "".to_string()),
             e.entry.message
         );
     }
