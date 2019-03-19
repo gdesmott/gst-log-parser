@@ -86,8 +86,8 @@ fn split_location(location: &str) -> (String, u32, String, Option<String>) {
         if !object.is_empty() {
             let object = object
                 .to_string()
-                .trim_left_matches('<')
-                .trim_right_matches('>')
+                .trim_start_matches('<')
+                .trim_end_matches('>')
                 .to_string();
 
             Some(object)
