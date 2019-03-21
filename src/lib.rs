@@ -18,6 +18,7 @@ use regex::Regex;
 #[derive(Debug)]
 pub struct ParsingError;
 
+#[derive(Debug)]
 pub struct Entry {
     pub ts: ClockTime,
     pub pid: u32,
