@@ -13,6 +13,8 @@ use structopt::StructOpt;
 enum Command {
     #[structopt(name = "check-decreasing-pts", about = "Check for decreasing PTS")]
     DecreasingPts,
+    #[structopt(name = "check-decreasing-dts", about = "Check for decreasing DTS")]
+    DecreasingDts,
 }
 
 #[derive(StructOpt, Debug)]
@@ -41,6 +43,7 @@ impl Element {
 struct Pad {
     name: String,
     last_buffer_pts: ClockTime,
+    last_buffer_dts: ClockTime,
 }
 
 impl Pad {
@@ -48,6 +51,7 @@ impl Pad {
         Self {
             name: name.to_string(),
             last_buffer_pts: ClockTime::none(),
+            last_buffer_dts: ClockTime::none(),
         }
     }
 }
@@ -112,6 +116,21 @@ impl Flow {
                 );
             }
             pad.last_buffer_pts = pts;
+        }
+
+        if s.get::<bool>("have-buffer-dts").unwrap() {
+            let dts = ClockTime::from_nseconds(s.get::<u64>("buffer-dts").unwrap());
+
+            if self.command == Command::DecreasingPts
+                && pad.last_buffer_dts.is_some()
+                && dts < pad.last_buffer_dts
+            {
+                println!(
+                    "Decreasing dts {}:{} {} < {}",
+                    element.name, pad.name, dts, pad.last_buffer_dts
+                );
+            }
+            pad.last_buffer_dts = dts;
         }
     }
 }
