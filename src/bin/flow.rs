@@ -1,6 +1,7 @@
 // Generate input logs with: GST_DEBUG="GST_TRACER:7" GST_TRACERS=stats
 
 use failure::Error;
+use gnuplot::*;
 use gst_log_parser::parse;
 use gstreamer::{ClockTime, DebugLevel, Structure};
 use std::collections::HashMap;
@@ -16,6 +17,10 @@ enum Command {
     DecreasingPts,
     #[structopt(name = "check-decreasing-dts", about = "Check for decreasing DTS")]
     DecreasingDts,
+    #[structopt(name = "plot-pts", about = "Plot PTS")]
+    PlotPts,
+    #[structopt(name = "plot-dts", about = "Plot DTS")]
+    PlotDts,
 }
 
 #[derive(StructOpt, Debug)]
@@ -46,6 +51,8 @@ struct Pad {
     last_buffer_pts: ClockTime,
     last_buffer_dts: ClockTime,
     element_name: Option<String>,
+    pts: Vec<(ClockTime, ClockTime)>,
+    dts: Vec<(ClockTime, ClockTime)>,
 }
 
 impl Pad {
@@ -55,6 +62,8 @@ impl Pad {
             last_buffer_pts: ClockTime::none(),
             last_buffer_dts: ClockTime::none(),
             element_name,
+            pts: Vec::new(),
+            dts: Vec::new(),
         }
     }
 }
@@ -125,6 +134,8 @@ impl Flow {
             pad.element_name = Some(element.name.clone());
         }
 
+        let ts = ClockTime::from_nseconds(s.get::<u64>("ts").unwrap());
+
         if s.get::<bool>("have-buffer-pts").unwrap() {
             let pts = ClockTime::from_nseconds(s.get::<u64>("buffer-pts").unwrap());
 
@@ -134,6 +145,7 @@ impl Flow {
             {
                 println!("Decreasing pts {} {} < {}", pad, pts, pad.last_buffer_pts);
             }
+            pad.pts.push((ts, pts));
             pad.last_buffer_pts = pts;
         }
 
@@ -146,7 +158,49 @@ impl Flow {
             {
                 println!("Decreasing dts {} {} < {}", pad, dts, pad.last_buffer_dts);
             }
+            pad.dts.push((ts, dts));
             pad.last_buffer_dts = dts;
+        }
+    }
+
+    fn plot(&self) {
+        let title = match self.command {
+            Command::PlotPts => "buffer pts",
+            Command::PlotDts => "buffer dts",
+            _ => return,
+        };
+
+        for pad in self.pads.values() {
+            let data = if self.command == Command::PlotPts {
+                &pad.pts
+            } else {
+                &pad.dts
+            };
+
+            if data.is_empty() {
+                continue;
+            }
+
+            let mut fg = Figure::new();
+            let axes = fg
+                .axes2d()
+                .set_title(&title, &[])
+                .set_x_label("time (ms)", &[])
+                .set_y_label("pts (ms)", &[]);
+
+            let caption = format!("{}", pad);
+
+            let mut x = Vec::new();
+            let mut y = Vec::new();
+            for (ts, buffer_ts) in data.iter() {
+                x.push(ts.mseconds().unwrap());
+                y.push(buffer_ts.mseconds().unwrap());
+            }
+
+            axes.points(&x, &y, &[Caption(&caption)]);
+
+            fg.set_post_commands("pause mouse close");
+            fg.show();
         }
     }
 }
@@ -167,6 +221,8 @@ fn main() -> Result<(), Error> {
 
         flow.parse(&s);
     }
+
+    flow.plot();
 
     Ok(())
 }
