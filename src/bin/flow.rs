@@ -21,6 +21,11 @@ enum Command {
     PlotPts,
     #[structopt(name = "plot-dts", about = "Plot DTS")]
     PlotDts,
+    #[structopt(name = "gap", about = "Detect GAP in buffers flow")]
+    Gap {
+        #[structopt(default_value = "500", help = "The minimum gap size to report, in ms")]
+        len: u64,
+    },
 }
 
 #[derive(StructOpt, Debug)]
@@ -48,6 +53,7 @@ impl Element {
 #[derive(Debug)]
 struct Pad {
     name: String,
+    last_buffer_ts: ClockTime,
     last_buffer_pts: ClockTime,
     last_buffer_dts: ClockTime,
     element_name: Option<String>,
@@ -59,6 +65,7 @@ impl Pad {
     fn new(name: &str, element_name: Option<String>) -> Self {
         Self {
             name: name.to_string(),
+            last_buffer_ts: ClockTime::none(),
             last_buffer_pts: ClockTime::none(),
             last_buffer_dts: ClockTime::none(),
             element_name,
@@ -161,6 +168,22 @@ impl Flow {
             pad.dts.push((ts, dts));
             pad.last_buffer_dts = dts;
         }
+
+        if let Command::Gap { len } = self.command {
+            if pad.last_buffer_ts.is_some() {
+                let len = ClockTime::from_mseconds(len);
+                let diff = ts - pad.last_buffer_ts;
+
+                if diff >= len {
+                    println!(
+                        "gap from {} : {} since previous buffer (received: {} previous: {})",
+                        pad, diff, ts, pad.last_buffer_ts
+                    );
+                }
+            }
+        }
+
+        pad.last_buffer_ts = ts;
     }
 
     fn plot(&self) {
