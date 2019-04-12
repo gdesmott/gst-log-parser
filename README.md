@@ -8,3 +8,16 @@ See [the examples](https://github.com/gdesmott/gst-log-parser/tree/master/src/bi
 - [Install Rust](https://www.rust-lang.org/en-US/install.html) if needed
 - `cargo build --release`
 - Parsing tools can be executed using 'cargo run --release --bin' and are also available in `target/release/`
+
+## Tools
+
+`src/bin` contains a few log parsers. They can be used as examples demonstrating how to use this crate
+but also should be useful when debugging specific issues.
+
+### flow
+
+This is a buffer flow analyzer consuming logs generated with `GST_DEBUG="GST_TRACER:7" GST_TRACERS=stats`.
+It can be used to:
+  - detect decreasing pts/dts
+  - detect gap (long period of time without buffers being produced by a pad)
+  - plot the pts/dts of produced buffers over time
