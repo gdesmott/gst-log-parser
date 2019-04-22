@@ -32,6 +32,8 @@ struct Opt {
         default_value = "1"
     )]
     top: usize,
+    #[structopt(short = "s", help = "Sort by decreasing ts difference")]
+    sort: bool,
 }
 
 struct TsEntry {
@@ -91,10 +93,17 @@ fn generate() -> Result<bool, std::io::Error> {
         }
     });
 
-    // Sort by ts
-    let entries = entries
-        .sorted_by(|a, b| Ord::cmp(&a.entry.ts, &b.entry.ts))
-        .into_iter();
+    let entries = if opt.sort {
+        // Sort by decreasing diff
+        entries
+            .sorted_by(|a, b| Ord::cmp(&b.diff, &a.diff))
+            .into_iter()
+    } else {
+        // Sort by increasing ts
+        entries
+            .sorted_by(|a, b| Ord::cmp(&a.entry.ts, &b.entry.ts))
+            .into_iter()
+    };
 
     // Display
     for e in entries {
