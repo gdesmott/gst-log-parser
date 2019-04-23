@@ -7,7 +7,7 @@ See [the examples](https://github.com/gdesmott/gst-log-parser/tree/master/src/bi
 
 - [Install Rust](https://www.rust-lang.org/en-US/install.html) if needed
 - `cargo build --release`
-- Parsing tools can be executed using 'cargo run --release --bin' and are also available in `target/release/`
+- Parsing tools can be executed using `cargo run --release --bin` and are also available in `target/release/`
 
 ## Tools
 
