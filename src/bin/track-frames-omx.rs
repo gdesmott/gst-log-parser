@@ -266,9 +266,10 @@ fn generate() -> Result<bool, std::io::Error> {
 
             if f.n_output() > 1 {
                 print!(
-                    " fst-out: {} 𝚫(lst-out): {}",
+                    " fst-out: {} 𝚫(lst-out): {} 𝚫(fst-in): {}",
                     f.first_buffer_left_ts(),
-                    f.last_buffer_left_ts() - f.first_buffer_left_ts()
+                    f.last_buffer_left_ts() - f.first_buffer_left_ts(),
+                    f.first_buffer_left_ts() - f.first_buffer_enter_ts()
                 );
             }
 
