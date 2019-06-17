@@ -1,17 +1,17 @@
 # gst-log-parser [![Build Status](https://travis-ci.org/gdesmott/gst-log-parser.svg?branch=master)](https://travis-ci.org/gdesmott/gst-log-parser)
 Simple Rust library to parse GStreamer logs.
 
-See [the examples](https://github.com/gdesmott/gst-log-parser/tree/master/src/bin) demonstrating how to use it.
+See [the examples](https://github.com/gdesmott/gst-log-parser/tree/master/examples) demonstrating how to use it.
 
 ## Quick start
 
 - [Install Rust](https://www.rust-lang.org/en-US/install.html) if needed
 - `cargo build --release`
-- Parsing tools can be executed using `cargo run --release --bin` and are also available in `target/release/`
+- Parsing tools can be executed using `cargo run --release --example` and are also available in `target/release/examples/`
 
 ## Tools
 
-`src/bin` contains a few log parsers. They can be used as examples demonstrating how to use this crate
+`examples` contains a few log parsers. They can be used as examples demonstrating how to use this crate
 but also should be useful when debugging specific issues.
 
 ### flow
