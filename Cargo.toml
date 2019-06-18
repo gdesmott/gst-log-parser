@@ -3,6 +3,10 @@ name = "gst-log-parser"
 version = "0.1.0"
 authors = ["Guillaume Desmottes <guillaume@desmottes.be>"]
 edition = "2018"
+license = "MIT/Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/gdesmott/gst-log-parser/"
+keywords = ["gstreamer", "multimedia"]
 
 [dependencies]
 itertools = "0.7"
