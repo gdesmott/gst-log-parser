@@ -7,6 +7,7 @@ license = "MIT/Apache-2.0"
 readme = "README.md"
 homepage = "https://github.com/gdesmott/gst-log-parser/"
 keywords = ["gstreamer", "multimedia"]
+description = "Crate providing a convenient API to parse GStreamer logs"
 
 [dependencies]
 itertools = "0.7"
