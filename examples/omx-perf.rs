@@ -1,3 +1,11 @@
+// Copyright (C) 2017-2019 Guillaume Desmottes <guillaume@desmottes.be>
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
 // Generate input logs with: GST_DEBUG="OMX_API_TRACE:8"
 use std::collections::HashMap;
 use std::fs::File;
