@@ -299,7 +299,7 @@ impl<R: Read> Iterator for ParserIterator<R> {
             None => None,
             Some(line) => match Entry::new(&line.unwrap()) {
                 Ok(entry) => Some(entry),
-                Err(_err) => None,
+                Err(_err) => self.next(),
             },
         }
     }
@@ -343,12 +343,17 @@ mod tests {
         assert_eq!(entry.object, Some("allocatorsysmem0".to_string()));
     }
 
-    #[test]
-    fn color() {
-        let f = File::open("test-logs/color.log").expect("Failed to open log file");
+    fn parse_file(f: File) -> (Entry, usize) {
         let mut parsed = parse(f);
 
         let entry = parsed.next().expect("First entry missing");
+        (entry, parsed.count() + 1)
+    }
+
+    #[test]
+    fn color() {
+        let f = File::open("test-logs/color.log").expect("Failed to open log file");
+        let (entry, count) = parse_file(f);
         assert_eq!(entry.ts.nanoseconds().unwrap(), 208614);
         assert_eq!(format!("{}", entry.ts), "00:00:00.000208614");
         assert_eq!(entry.pid, 17267);
@@ -362,17 +367,14 @@ mod tests {
             entry.message,
             "Initializing GStreamer Core Library version 1.13.0.1"
         );
-
-        assert_eq!(parsed.count(), 14);
+        assert_eq!(count, 15);
     }
 
     #[test]
     fn corrupted() {
         let f = File::open("test-logs/corrupted-nocolor.log").expect("Failed to open log file");
-        let mut parsed = parse(f);
+        let (entry, count) = parse_file(f);
 
-        assert!(parsed.next().is_none());
-        let entry = parsed.next().expect("First entry missing");
         assert_eq!(entry.ts.nanoseconds().unwrap(), 7773544);
         assert_eq!(format!("{}", entry.ts), "00:00:00.007773544");
         assert_eq!(entry.pid, 8874);
@@ -386,10 +388,14 @@ mod tests {
             entry.message,
             "Initializing GStreamer Core Library version 1.10.4"
         );
+        assert_eq!(count, 6);
+    }
 
-        let entry = parsed.nth(3).expect("3th entry missing");
-        assert_eq!(entry.message, "0x55895101d040 ref 1->2");
-        assert_eq!(entry.object, Some("allocatorsysmem0".to_string()));
+    #[test]
+    fn parse_corrupted() {
+        let f = File::open("test-logs/corrupted-nocolor.log").expect("Failed to open log file");
+        let (_entry, count) = parse_file(f);
+        assert!(count > 0);
     }
 
     #[test]
