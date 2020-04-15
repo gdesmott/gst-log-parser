@@ -231,7 +231,7 @@ impl Flow {
             axes.points(&x, &y, &[Caption(&caption)]);
 
             fg.set_post_commands("pause mouse close");
-            fg.show();
+            fg.show().unwrap();
         }
     }
 }

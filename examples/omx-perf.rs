@@ -19,7 +19,6 @@ extern crate gstreamer as gst;
 use gst::DebugLevel;
 
 extern crate structopt;
-extern crate structopt_derive;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]

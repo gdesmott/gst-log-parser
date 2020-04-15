@@ -23,7 +23,6 @@ extern crate itertools;
 use itertools::Itertools;
 
 extern crate structopt;
-extern crate structopt_derive;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
