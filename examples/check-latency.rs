@@ -53,7 +53,7 @@ fn main() -> Result<(), Error> {
             Some(s) => s,
         };
 
-        if s.get_name() != "latency" {
+        if s.get_name() != "latency" && s.get_name() != "element-latency" {
             continue;
         }
 
