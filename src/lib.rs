@@ -6,25 +6,19 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use itertools::join;
 use std::fmt;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::io::Lines;
 use std::io::Read;
 use std::str;
-extern crate itertools;
-use itertools::join;
 use std::str::FromStr;
 
-extern crate gstreamer as gst;
+use failure::Fail;
 use gst::{ClockTime, DebugLevel, Structure};
-
-#[macro_use]
-extern crate lazy_static;
-extern crate regex;
-#[macro_use]
-extern crate failure;
-
+use gstreamer as gst;
+use lazy_static::lazy_static;
 use regex::Regex;
 
 #[derive(Debug, PartialEq)]

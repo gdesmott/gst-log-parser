@@ -12,13 +12,8 @@ use std::fs::File;
 use std::io::Write;
 use std::process::exit;
 
-extern crate gst_log_parser;
 use gst_log_parser::parse;
-
-extern crate gstreamer as gst;
-use gst::DebugLevel;
-
-extern crate structopt;
+use gstreamer::DebugLevel;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]

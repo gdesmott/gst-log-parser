@@ -10,19 +10,10 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::process::exit;
 
-extern crate gst_log_parser;
-use gst_log_parser::parse;
-
-extern crate gstreamer as gst;
-use gst::ClockTime;
-
-extern crate colored;
 use colored::*;
-
-extern crate itertools;
+use gst_log_parser::parse;
+use gstreamer::ClockTime;
 use itertools::Itertools;
-
-extern crate structopt;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]

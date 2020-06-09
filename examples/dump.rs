@@ -8,10 +8,7 @@
 
 use std::fs::File;
 
-extern crate gst_log_parser;
 use gst_log_parser::parse;
-
-extern crate structopt;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
