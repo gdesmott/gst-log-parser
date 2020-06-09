@@ -11,10 +11,11 @@ description = "Crate providing a convenient API to parse GStreamer logs"
 
 [dependencies]
 itertools = "0.9"
-gstreamer = "0.13"
+gstreamer = "0.15"
 regex = "1.3"
 lazy_static = "1.4"
 failure = "0.1.8"
+anyhow = "1"
 
 [[example]]
 name = "dump"

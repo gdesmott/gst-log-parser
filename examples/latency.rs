@@ -59,11 +59,11 @@ fn main() -> Result<(), Error> {
         match s.get_name() {
             "element-latency" => {
                 let count = elt_latency
-                    .entry(s.get("src").expect("Missing 'src' field"))
+                    .entry(s.get("src").unwrap().expect("Missing 'src' field"))
                     .or_insert_with(Count::new);
 
                 count.n += 1;
-                let time: u64 = s.get("time").expect("Missing 'time' field");
+                let time: u64 = s.get("time").unwrap().expect("Missing 'time' field");
                 count.total += ClockTime::from_nseconds(time);
             }
             "latency" => { /* TODO */ }

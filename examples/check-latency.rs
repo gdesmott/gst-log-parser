@@ -60,7 +60,7 @@ fn main() -> Result<(), Error> {
         let latency = s.get::<u64>("time").unwrap();
         match opt.command {
             Command::FilterHigher { min } => {
-                if latency >= min * MSECOND_VAL {
+                if latency >= Some(min * MSECOND_VAL) {
                     println!("{}", entry);
                 }
             }

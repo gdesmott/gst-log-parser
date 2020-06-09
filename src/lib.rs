@@ -14,6 +14,7 @@ use std::io::Read;
 use std::str;
 extern crate itertools;
 use itertools::join;
+use std::str::FromStr;
 
 extern crate gstreamer as gst;
 use gst::{ClockTime, DebugLevel, Structure};
@@ -258,7 +259,7 @@ impl Entry {
     }
 
     pub fn message_to_struct(&self) -> Option<Structure> {
-        Structure::from_string(&self.message)
+        Structure::from_str(&self.message).ok()
     }
 }
 

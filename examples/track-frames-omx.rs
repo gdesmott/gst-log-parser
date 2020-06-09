@@ -20,6 +20,7 @@ extern crate itertools;
 use itertools::Itertools;
 
 extern crate structopt;
+use anyhow::Result;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
@@ -160,7 +161,7 @@ impl CbTime {
     }
 }
 
-fn generate() -> Result<bool, std::io::Error> {
+fn generate() -> Result<bool> {
     let opt = Opt::from_args();
     let input = File::open(opt.input)?;
     let parsed = parse(input).filter(|entry| entry.category == "OMX_API_TRACE");
@@ -176,7 +177,7 @@ fn generate() -> Result<bool, std::io::Error> {
         if let Some((i, _)) = object.char_indices().rev().nth(3) {
             let comp_name = &object[i..];
 
-            let omx_ts = s.get("TimeStamp");
+            let omx_ts = s.get("TimeStamp")?;
             if omx_ts.is_none() {
                 continue;
             }
@@ -199,7 +200,7 @@ fn generate() -> Result<bool, std::io::Error> {
                 // output
                 "FillBufferDone" => {
                     // Ignore empty output buffers
-                    let filled: u32 = s.get("FilledLen").unwrap();
+                    let filled: u32 = s.get("FilledLen")?.unwrap();
                     if filled == 0 {
                         continue;
                     }

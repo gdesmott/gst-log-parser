@@ -111,22 +111,22 @@ impl Flow {
     fn parse(&mut self, s: &Structure) {
         match s.get_name() {
             "new-element" => {
-                let idx = s.get::<u32>("ix").unwrap();
+                let idx = s.get::<u32>("ix").unwrap().unwrap();
                 self.elements
                     .entry(idx)
-                    .or_insert_with(|| Element::new(s.get::<&str>("name").unwrap()));
+                    .or_insert_with(|| Element::new(s.get::<&str>("name").unwrap().unwrap()));
             }
             "new-pad" => {
-                let idx = s.get::<u32>("ix").unwrap();
-                let parent_ix = s.get::<u32>("parent-ix").unwrap();
+                let idx = s.get::<u32>("ix").unwrap().unwrap();
+                let parent_ix = s.get::<u32>("parent-ix").unwrap().unwrap();
                 let element_name = match self.elements.get(&parent_ix) {
                     None => None,
                     Some(e) => Some(e.name.clone()),
                 };
 
-                self.pads
-                    .entry(idx)
-                    .or_insert_with(|| Pad::new(s.get::<&str>("name").unwrap(), element_name));
+                self.pads.entry(idx).or_insert_with(|| {
+                    Pad::new(s.get::<&str>("name").unwrap().unwrap(), element_name)
+                });
             }
             "buffer" => {
                 self.handle_buffer(s);
@@ -138,21 +138,21 @@ impl Flow {
     fn handle_buffer(&mut self, s: &Structure) {
         let pad = self
             .pads
-            .get_mut(&s.get::<u32>("pad-ix").unwrap())
+            .get_mut(&s.get::<u32>("pad-ix").unwrap().unwrap())
             .expect("Unknown pad");
         let element = self
             .elements
-            .get(&s.get::<u32>("element-ix").unwrap())
+            .get(&s.get::<u32>("element-ix").unwrap().unwrap())
             .expect("Unknown element");
 
         if pad.element_name.is_none() {
             pad.element_name = Some(element.name.clone());
         }
 
-        let ts = ClockTime::from_nseconds(s.get::<u64>("ts").unwrap());
+        let ts = ClockTime::from_nseconds(s.get::<u64>("ts").unwrap().unwrap());
 
-        if s.get::<bool>("have-buffer-pts").unwrap() {
-            let pts = ClockTime::from_nseconds(s.get::<u64>("buffer-pts").unwrap());
+        if s.get::<bool>("have-buffer-pts").unwrap().unwrap() {
+            let pts = ClockTime::from_nseconds(s.get::<u64>("buffer-pts").unwrap().unwrap());
 
             if self.command == Command::DecreasingPts
                 && pad.last_buffer_pts.is_some()
@@ -164,8 +164,8 @@ impl Flow {
             pad.last_buffer_pts = pts;
         }
 
-        if s.get::<bool>("have-buffer-dts").unwrap() {
-            let dts = ClockTime::from_nseconds(s.get::<u64>("buffer-dts").unwrap());
+        if s.get::<bool>("have-buffer-dts").unwrap().unwrap() {
+            let dts = ClockTime::from_nseconds(s.get::<u64>("buffer-dts").unwrap().unwrap());
 
             if self.command == Command::DecreasingPts
                 && pad.last_buffer_dts.is_some()
