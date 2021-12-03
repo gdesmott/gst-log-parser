@@ -319,8 +319,8 @@ mod tests {
         let mut parsed = parse(f);
 
         let entry = parsed.next().expect("First entry missing");
-        assert_eq!(entry.ts.nanoseconds().unwrap(), 7773544);
-        assert_eq!(format!("{}", entry.ts), "00:00:00.007773544");
+        assert_eq!(entry.ts.nseconds(), 7773544);
+        assert_eq!(format!("{}", entry.ts), "0:00:00.007773544");
         assert_eq!(entry.pid, 8874);
         assert_eq!(entry.thread, "0x558951015c00");
         assert_eq!(entry.level, DebugLevel::Info);
@@ -349,8 +349,8 @@ mod tests {
     fn color() {
         let f = File::open("test-logs/color.log").expect("Failed to open log file");
         let (entry, count) = parse_file(f);
-        assert_eq!(entry.ts.nanoseconds().unwrap(), 208614);
-        assert_eq!(format!("{}", entry.ts), "00:00:00.000208614");
+        assert_eq!(entry.ts.nseconds(), 208614);
+        assert_eq!(format!("{}", entry.ts), "0:00:00.000208614");
         assert_eq!(entry.pid, 17267);
         assert_eq!(entry.thread, "0x2192200");
         assert_eq!(entry.level, DebugLevel::Info);
@@ -370,8 +370,8 @@ mod tests {
         let f = File::open("test-logs/corrupted-nocolor.log").expect("Failed to open log file");
         let (entry, count) = parse_file(f);
 
-        assert_eq!(entry.ts.nanoseconds().unwrap(), 7773544);
-        assert_eq!(format!("{}", entry.ts), "00:00:00.007773544");
+        assert_eq!(entry.ts.nseconds(), 7773544);
+        assert_eq!(format!("{}", entry.ts), "0:00:00.007773544");
         assert_eq!(entry.pid, 8874);
         assert_eq!(entry.thread, "0x558951015c00");
         assert_eq!(entry.level, DebugLevel::Info);

@@ -10,7 +10,7 @@
 
 use failure::Error;
 use gst_log_parser::parse;
-use gstreamer::{DebugLevel, MSECOND_VAL};
+use gstreamer::{ClockTime, DebugLevel};
 use std::fs::File;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -53,14 +53,15 @@ fn main() -> Result<(), Error> {
             Some(s) => s,
         };
 
-        if s.get_name() != "latency" && s.get_name() != "element-latency" {
+        if s.name() != "latency" && s.name() != "element-latency" {
             continue;
         }
 
-        let latency = s.get::<u64>("time").unwrap();
+        let latency = s.get::<ClockTime>("time").unwrap();
         match opt.command {
             Command::FilterHigher { min } => {
-                if latency >= Some(min * MSECOND_VAL) {
+                let min_time = ClockTime::from_mseconds(min);
+                if latency >= min_time {
                     println!("{}", entry);
                 }
             }

@@ -61,9 +61,9 @@ impl Element {
 #[derive(Debug)]
 struct Pad {
     name: String,
-    last_buffer_ts: ClockTime,
-    last_buffer_pts: ClockTime,
-    last_buffer_dts: ClockTime,
+    last_buffer_ts: Option<ClockTime>,
+    last_buffer_pts: Option<ClockTime>,
+    last_buffer_dts: Option<ClockTime>,
     element_name: Option<String>,
     pts: Vec<(ClockTime, ClockTime)>,
     dts: Vec<(ClockTime, ClockTime)>,
@@ -73,9 +73,9 @@ impl Pad {
     fn new(name: &str, element_name: Option<String>) -> Self {
         Self {
             name: name.to_string(),
-            last_buffer_ts: ClockTime::none(),
-            last_buffer_pts: ClockTime::none(),
-            last_buffer_dts: ClockTime::none(),
+            last_buffer_ts: None,
+            last_buffer_pts: None,
+            last_buffer_dts: None,
             element_name,
             pts: Vec::new(),
             dts: Vec::new(),
@@ -109,24 +109,24 @@ impl Flow {
     }
 
     fn parse(&mut self, s: &Structure) {
-        match s.get_name() {
+        match s.name() {
             "new-element" => {
-                let idx = s.get::<u32>("ix").unwrap().unwrap();
+                let idx = s.get::<u32>("ix").unwrap();
                 self.elements
                     .entry(idx)
-                    .or_insert_with(|| Element::new(s.get::<&str>("name").unwrap().unwrap()));
+                    .or_insert_with(|| Element::new(s.get::<&str>("name").unwrap()));
             }
             "new-pad" => {
-                let idx = s.get::<u32>("ix").unwrap().unwrap();
-                let parent_ix = s.get::<u32>("parent-ix").unwrap().unwrap();
+                let idx = s.get::<u32>("ix").unwrap();
+                let parent_ix = s.get::<u32>("parent-ix").unwrap();
                 let element_name = match self.elements.get(&parent_ix) {
                     None => None,
                     Some(e) => Some(e.name.clone()),
                 };
 
-                self.pads.entry(idx).or_insert_with(|| {
-                    Pad::new(s.get::<&str>("name").unwrap().unwrap(), element_name)
-                });
+                self.pads
+                    .entry(idx)
+                    .or_insert_with(|| Pad::new(s.get::<&str>("name").unwrap(), element_name));
             }
             "buffer" => {
                 self.handle_buffer(s);
@@ -138,60 +138,60 @@ impl Flow {
     fn handle_buffer(&mut self, s: &Structure) {
         let pad = self
             .pads
-            .get_mut(&s.get::<u32>("pad-ix").unwrap().unwrap())
+            .get_mut(&s.get::<u32>("pad-ix").unwrap())
             .expect("Unknown pad");
         let element = self
             .elements
-            .get(&s.get::<u32>("element-ix").unwrap().unwrap())
+            .get(&s.get::<u32>("element-ix").unwrap())
             .expect("Unknown element");
 
         if pad.element_name.is_none() {
             pad.element_name = Some(element.name.clone());
         }
 
-        let ts = ClockTime::from_nseconds(s.get::<u64>("ts").unwrap().unwrap());
+        let ts = ClockTime::from_nseconds(s.get::<u64>("ts").unwrap());
 
-        if s.get::<bool>("have-buffer-pts").unwrap().unwrap() {
-            let pts = ClockTime::from_nseconds(s.get::<u64>("buffer-pts").unwrap().unwrap());
+        if s.get::<bool>("have-buffer-pts").unwrap() {
+            let pts = s.get::<ClockTime>("buffer-pts").unwrap();
 
-            if self.command == Command::DecreasingPts
-                && pad.last_buffer_pts.is_some()
-                && pts < pad.last_buffer_pts
-            {
-                println!("Decreasing pts {} {} < {}", pad, pts, pad.last_buffer_pts);
+            if let Some(last_buffer_pts) = pad.last_buffer_pts {
+                if self.command == Command::DecreasingPts && pts < last_buffer_pts {
+                    println!("Decreasing pts {} {} < {}", pad, pts, last_buffer_pts);
+                }
             }
             pad.pts.push((ts, pts));
-            pad.last_buffer_pts = pts;
+            pad.last_buffer_pts = Some(pts);
         }
 
-        if s.get::<bool>("have-buffer-dts").unwrap().unwrap() {
-            let dts = ClockTime::from_nseconds(s.get::<u64>("buffer-dts").unwrap().unwrap());
+        if s.get::<bool>("have-buffer-dts").unwrap() {
+            let dts = s.get::<ClockTime>("buffer-dts").unwrap();
 
-            if self.command == Command::DecreasingPts
-                && pad.last_buffer_dts.is_some()
-                && dts < pad.last_buffer_dts
-            {
-                println!("Decreasing dts {} {} < {}", pad, dts, pad.last_buffer_dts);
+            if let Some(last_buffer_dts) = pad.last_buffer_dts {
+                if self.command == Command::DecreasingPts && dts < last_buffer_dts {
+                    println!("Decreasing dts {} {} < {}", pad, dts, last_buffer_dts);
+                }
             }
             pad.dts.push((ts, dts));
-            pad.last_buffer_dts = dts;
+            pad.last_buffer_dts = Some(dts);
         }
 
         if let Command::Gap { len } = self.command {
             if pad.last_buffer_ts.is_some() {
                 let len = ClockTime::from_mseconds(len);
-                let diff = ts - pad.last_buffer_ts;
+                if let Some(last_buffer_ts) = pad.last_buffer_ts {
+                    let diff = ts - last_buffer_ts;
 
-                if diff >= len {
-                    println!(
-                        "gap from {} : {} since previous buffer (received: {} previous: {})",
-                        pad, diff, ts, pad.last_buffer_ts
-                    );
+                    if diff >= len {
+                        println!(
+                            "gap from {} : {} since previous buffer (received: {} previous: {})",
+                            pad, diff, ts, last_buffer_ts
+                        );
+                    }
                 }
             }
         }
 
-        pad.last_buffer_ts = ts;
+        pad.last_buffer_ts = Some(ts);
     }
 
     fn plot(&self) {
@@ -224,8 +224,8 @@ impl Flow {
             let mut x = Vec::new();
             let mut y = Vec::new();
             for (ts, buffer_ts) in data.iter() {
-                x.push(ts.mseconds().unwrap());
-                y.push(buffer_ts.mseconds().unwrap());
+                x.push(ts.mseconds());
+                y.push(buffer_ts.mseconds());
             }
 
             axes.points(&x, &y, &[Caption(&caption)]);

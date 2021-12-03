@@ -64,7 +64,7 @@ fn generate() -> Result<bool, std::io::Error> {
         // Extract the component name by taking the 4th last chars of the gst object name
         if let Some((i, _)) = object.char_indices().rev().nth(3) {
             let comp_name = &object[i..];
-            let event = s.get_name();
+            let event = s.name();
             let count = counts
                 .entry(comp_name.to_string())
                 .or_insert_with(Count::new);
@@ -77,7 +77,7 @@ fn generate() -> Result<bool, std::io::Error> {
                 _ => continue,
             }
 
-            let ts = entry.ts.nanoseconds().expect("missing ts");
+            let ts = entry.ts.nseconds();
             writeln!(output, "{}_{} 1 {}", comp_name, event, ts)?;
             writeln!(output, "{}_{} 0 {}", comp_name, event, ts + 1)?;
         }

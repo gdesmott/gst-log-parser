@@ -39,7 +39,7 @@ impl Count {
     }
 
     fn mean(&self) -> ClockTime {
-        ClockTime::from_nseconds(self.total.nseconds().unwrap() / self.n)
+        ClockTime::from_nseconds(self.total.nseconds() / self.n)
     }
 }
 
@@ -56,14 +56,14 @@ fn main() -> Result<(), Error> {
             .message_to_struct()
             .expect("Failed to parse structure");
 
-        match s.get_name() {
+        match s.name() {
             "element-latency" => {
                 let count = elt_latency
-                    .entry(s.get("src").unwrap().expect("Missing 'src' field"))
+                    .entry(s.get::<String>("src").expect("Missing 'src' field"))
                     .or_insert_with(Count::new);
 
                 count.n += 1;
-                let time: u64 = s.get("time").unwrap().expect("Missing 'time' field");
+                let time: u64 = s.get("time").expect("Missing 'time' field");
                 count.total += ClockTime::from_nseconds(time);
             }
             "latency" => { /* TODO */ }
