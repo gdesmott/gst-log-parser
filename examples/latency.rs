@@ -52,10 +52,10 @@ fn main() -> Result<(), Error> {
         .filter(|entry| entry.category == "GST_TRACER" && entry.level == DebugLevel::Trace);
 
     for entry in parsed {
-        let s = entry
-            .message_to_struct()
-            .expect("Failed to parse structure");
-
+        let s = match entry.message_to_struct() {
+            None => continue,
+            Some(s) => s,
+        };
         match s.name() {
             "element-latency" => {
                 let count = elt_latency
