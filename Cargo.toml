@@ -11,7 +11,7 @@ description = "Crate providing a convenient API to parse GStreamer logs"
 
 [dependencies]
 itertools = "0.9"
-gstreamer = "0.15"
+gstreamer = "0.17"
 regex = "1.3"
 lazy_static = "1.4"
 failure = "0.1.8"

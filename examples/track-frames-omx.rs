@@ -98,8 +98,8 @@ struct ComponentStats {
     n: u64,
     tot_processing_time: ClockTime,
     // when the first/last buffer has been produced
-    ts_first_out: ClockTime,
-    ts_last_out: ClockTime,
+    ts_first_out: Option<ClockTime>,
+    ts_last_out: Option<ClockTime>,
 }
 
 impl ComponentStats {
@@ -107,24 +107,24 @@ impl ComponentStats {
         ComponentStats {
             n: 0,
             tot_processing_time: ClockTime::from_nseconds(0),
-            ts_first_out: ClockTime::none(),
-            ts_last_out: ClockTime::none(),
+            ts_first_out: None,
+            ts_last_out: None,
         }
     }
 
     fn average_processing_time(&self) -> ClockTime {
-        ClockTime::from_nseconds(self.tot_processing_time.nseconds().unwrap() / self.n)
+        ClockTime::from_nseconds(self.tot_processing_time.nseconds() / self.n)
     }
 }
 
 #[derive(Debug)]
 struct CbTime {
-    fill_done_ts: ClockTime,
+    fill_done_ts: Option<ClockTime>,
     fill_done_tot: ClockTime,
     fill_done_max: ClockTime,
     fill_done_n: u64,
 
-    empty_done_ts: ClockTime,
+    empty_done_ts: Option<ClockTime>,
     empty_done_tot: ClockTime,
     empty_done_max: ClockTime,
     empty_done_n: u64,
@@ -133,12 +133,12 @@ struct CbTime {
 impl CbTime {
     fn new() -> CbTime {
         CbTime {
-            fill_done_ts: ClockTime::none(),
+            fill_done_ts: None,
             fill_done_tot: ClockTime::from_nseconds(0),
             fill_done_max: ClockTime::from_nseconds(0),
             fill_done_n: 0,
 
-            empty_done_ts: ClockTime::none(),
+            empty_done_ts: None,
             empty_done_tot: ClockTime::from_nseconds(0),
             empty_done_max: ClockTime::from_nseconds(0),
             empty_done_n: 0,
@@ -146,11 +146,11 @@ impl CbTime {
     }
 
     fn fill_done_average(&self) -> ClockTime {
-        ClockTime::from_nseconds(self.fill_done_tot.nseconds().unwrap() / self.fill_done_n)
+        ClockTime::from_nseconds(self.fill_done_tot.nseconds() / self.fill_done_n)
     }
 
     fn empty_done_average(&self) -> ClockTime {
-        ClockTime::from_nseconds(self.empty_done_tot.nseconds().unwrap() / self.empty_done_n)
+        ClockTime::from_nseconds(self.empty_done_tot.nseconds() / self.empty_done_n)
     }
 }
 
@@ -170,13 +170,13 @@ fn generate() -> Result<bool> {
         if let Some((i, _)) = object.char_indices().rev().nth(3) {
             let comp_name = &object[i..];
 
-            let omx_ts = s.get("TimeStamp")?;
+            let omx_ts = s.get::<Option<ClockTime>>("TimeStamp")?;
             if omx_ts.is_none() {
                 continue;
             }
-            let omx_ts = omx_ts.unwrap();
+            let omx_ts = omx_ts.unwrap().nseconds();
 
-            let event = s.get_name();
+            let event = s.name();
 
             let frame = frames.entry(omx_ts).or_insert_with(|| Frame::new(omx_ts));
             let comp = frame
@@ -193,29 +193,33 @@ fn generate() -> Result<bool> {
                 // output
                 "FillBufferDone" => {
                     // Ignore empty output buffers
-                    let filled: u32 = s.get("FilledLen")?.unwrap();
+                    let filled = s.get::<u32>("FilledLen")?;
                     if filled == 0 {
                         continue;
                     }
                     comp.fill_done_ts.push(entry.ts);
-                    cb.fill_done_ts = entry.ts;
+                    cb.fill_done_ts = Some(entry.ts);
                 }
                 "FillBufferDone-FINISHED" => {
-                    let diff = entry.ts - cb.fill_done_ts;
-                    cb.fill_done_tot += diff;
-                    if cb.fill_done_max < diff {
-                        cb.fill_done_max = diff;
+                    if let Some(fill_done_ts) = cb.fill_done_ts {
+                        let diff = entry.ts - fill_done_ts;
+                        cb.fill_done_tot += diff;
+                        if cb.fill_done_max < diff {
+                            cb.fill_done_max = diff;
+                        }
+                        cb.fill_done_n += 1;
                     }
-                    cb.fill_done_n += 1;
                 }
-                "EmptyBufferDone" => cb.empty_done_ts = entry.ts,
+                "EmptyBufferDone" => cb.empty_done_ts = Some(entry.ts),
                 "EmptyBufferDone-FINISHED" => {
-                    let diff = entry.ts - cb.empty_done_ts;
-                    cb.empty_done_tot += diff;
-                    if cb.empty_done_max < diff {
-                        cb.empty_done_max = diff;
+                    if let Some(empty_done_ts) = cb.empty_done_ts {
+                        let diff = entry.ts - empty_done_ts;
+                        cb.empty_done_tot += diff;
+                        if cb.empty_done_max < diff {
+                            cb.empty_done_max = diff;
+                        }
+                        cb.empty_done_n += 1;
                     }
-                    cb.empty_done_n += 1;
                 }
                 _ => {}
             }
@@ -280,9 +284,9 @@ fn generate() -> Result<bool> {
             comp.n += 1;
 
             if comp.ts_first_out.is_none() {
-                comp.ts_first_out = f.last_buffer_left_ts();
+                comp.ts_first_out = Some(f.last_buffer_left_ts());
             }
-            comp.ts_last_out = f.last_buffer_left_ts();
+            comp.ts_last_out = Some(f.last_buffer_left_ts());
         }
         println!();
     }
@@ -290,13 +294,17 @@ fn generate() -> Result<bool> {
     println!();
     for (name, comp) in components {
         let avg = comp.average_processing_time();
-        let interval = comp.ts_last_out - comp.ts_first_out;
-        let rate = comp.n as f64 / interval.seconds().unwrap() as f64;
+        if let Some(ts_last_out) = comp.ts_last_out {
+            if let Some(ts_first_out) = comp.ts_first_out {
+                let interval = ts_last_out - ts_first_out;
+                let rate = comp.n as f64 / interval.seconds() as f64;
 
-        println!(
-            "{} : nb-frames: {} avg-time: {} rate: {:.2} fps",
-            name, comp.n, avg, rate
-        );
+                println!(
+                    "{} : nb-frames: {} avg-time: {} rate: {:.2} fps",
+                    name, comp.n, avg, rate
+                );
+            }
+        }
     }
 
     println!();
