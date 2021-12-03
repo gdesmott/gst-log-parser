@@ -119,10 +119,7 @@ impl Flow {
             "new-pad" => {
                 let idx = s.get::<u32>("ix").unwrap();
                 let parent_ix = s.get::<u32>("parent-ix").unwrap();
-                let element_name = match self.elements.get(&parent_ix) {
-                    None => None,
-                    Some(e) => Some(e.name.clone()),
-                };
+                let element_name = self.elements.get(&parent_ix).map(|e| e.name.clone());
 
                 self.pads
                     .entry(idx)
@@ -215,7 +212,7 @@ impl Flow {
             let mut fg = Figure::new();
             let axes = fg
                 .axes2d()
-                .set_title(&title, &[])
+                .set_title(title, &[])
                 .set_x_label("time (ms)", &[])
                 .set_y_label("pts (ms)", &[]);
 

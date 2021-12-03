@@ -93,14 +93,10 @@ fn generate() -> Result<bool, std::io::Error> {
 
     let entries = if opt.sort {
         // Sort by decreasing diff
-        entries
-            .sorted_by(|a, b| Ord::cmp(&b.diff, &a.diff))
-            .into_iter()
+        entries.sorted_by(|a, b| Ord::cmp(&b.diff, &a.diff))
     } else {
         // Sort by increasing ts
-        entries
-            .sorted_by(|a, b| Ord::cmp(&a.entry.ts, &b.entry.ts))
-            .into_iter()
+        entries.sorted_by(|a, b| Ord::cmp(&a.entry.ts, &b.entry.ts))
     };
 
     // Display

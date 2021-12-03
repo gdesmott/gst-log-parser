@@ -74,7 +74,7 @@ fn main() -> Result<(), Error> {
 
     println!("Mean latency:");
     // Sort by pad name so we can easily compare results
-    for (pad, count) in elt_latency.iter().sorted_by(|(a, _), (b, _)| a.cmp(&b)) {
+    for (pad, count) in elt_latency.iter().sorted_by(|(a, _), (b, _)| a.cmp(b)) {
         println!("  {}: {}", pad, count.mean());
     }
 

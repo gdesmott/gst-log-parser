@@ -93,7 +93,7 @@ fn parse_time(ts: &str) -> Result<ClockTime, ParsingError> {
     let mut split = ts.splitn(3, ':');
     let h: u64 = split
         .next()
-        .ok_or_else(|| ParsingError::MissingToken {
+        .ok_or(ParsingError::MissingToken {
             t: Token::Timestamp {
                 field: Some(TimestampField::Hour),
             },
@@ -106,7 +106,7 @@ fn parse_time(ts: &str) -> Result<ClockTime, ParsingError> {
 
     let m: u64 = split
         .next()
-        .ok_or_else(|| ParsingError::MissingToken {
+        .ok_or(ParsingError::MissingToken {
             t: Token::Timestamp {
                 field: Some(TimestampField::Minute),
             },
@@ -119,7 +119,7 @@ fn parse_time(ts: &str) -> Result<ClockTime, ParsingError> {
 
     split = split
         .next()
-        .ok_or_else(|| ParsingError::MissingToken {
+        .ok_or(ParsingError::MissingToken {
             t: Token::Timestamp {
                 field: Some(TimestampField::Second),
             },
@@ -127,7 +127,7 @@ fn parse_time(ts: &str) -> Result<ClockTime, ParsingError> {
         .splitn(2, '.');
     let secs: u64 = split
         .next()
-        .ok_or_else(|| ParsingError::MissingToken {
+        .ok_or(ParsingError::MissingToken {
             t: Token::Timestamp {
                 field: Some(TimestampField::Second),
             },
@@ -140,7 +140,7 @@ fn parse_time(ts: &str) -> Result<ClockTime, ParsingError> {
 
     let subsecs: u64 = split
         .next()
-        .ok_or_else(|| ParsingError::MissingToken {
+        .ok_or(ParsingError::MissingToken {
             t: Token::Timestamp {
                 field: Some(TimestampField::SubSecond),
             },
@@ -158,8 +158,8 @@ fn split_location(location: &str) -> Result<(String, u32, String, Option<String>
     let mut split = location.splitn(4, ':');
     let file = split
         .next()
-        .ok_or_else(|| ParsingError::MissingToken { t: Token::File })?;
-    let line_str = split.next().ok_or_else(|| ParsingError::MissingToken {
+        .ok_or(ParsingError::MissingToken { t: Token::File })?;
+    let line_str = split.next().ok_or(ParsingError::MissingToken {
         t: Token::LineNumber,
     })?;
     let line = line_str
@@ -170,11 +170,11 @@ fn split_location(location: &str) -> Result<(String, u32, String, Option<String>
 
     let function = split
         .next()
-        .ok_or_else(|| ParsingError::MissingToken { t: Token::Function })?;
+        .ok_or(ParsingError::MissingToken { t: Token::Function })?;
 
     let object = split
         .next()
-        .ok_or_else(|| ParsingError::MissingToken { t: Token::Object })?;
+        .ok_or(ParsingError::MissingToken { t: Token::Object })?;
 
     let object_name = {
         if !object.is_empty() {
@@ -199,10 +199,10 @@ impl Entry {
         lazy_static! {
             static ref RE: Regex = Regex::new("\x1b\\[[0-9;]*m").unwrap();
         }
-        let line = RE.replace_all(&line, "");
+        let line = RE.replace_all(line, "");
 
         let mut it = line.split(' ');
-        let ts_str = it.next().ok_or_else(|| ParsingError::MissingToken {
+        let ts_str = it.next().ok_or(ParsingError::MissingToken {
             t: Token::Timestamp { field: None },
         })?;
         let ts = parse_time(ts_str)?;
@@ -210,7 +210,7 @@ impl Entry {
         let mut it = it.skip_while(|x| x.is_empty());
         let pid_str = it
             .next()
-            .ok_or_else(|| ParsingError::MissingToken { t: Token::PID })?;
+            .ok_or(ParsingError::MissingToken { t: Token::PID })?;
         let pid = pid_str.parse().map_err(|_e| ParsingError::InvalidPID {
             pid: pid_str.to_string(),
         })?;
@@ -218,23 +218,23 @@ impl Entry {
         let mut it = it.skip_while(|x| x.is_empty());
         let thread = it
             .next()
-            .ok_or_else(|| ParsingError::MissingToken { t: Token::Thread })?
+            .ok_or(ParsingError::MissingToken { t: Token::Thread })?
             .to_string();
 
         let mut it = it.skip_while(|x| x.is_empty());
         let level_str = it
             .next()
-            .ok_or_else(|| ParsingError::MissingToken { t: Token::Level })?;
+            .ok_or(ParsingError::MissingToken { t: Token::Level })?;
         let level = parse_debug_level(level_str)?;
 
         let mut it = it.skip_while(|x| x.is_empty());
         let category = it
             .next()
-            .ok_or_else(|| ParsingError::MissingToken { t: Token::Category })?
+            .ok_or(ParsingError::MissingToken { t: Token::Category })?
             .to_string();
 
         let mut it = it.skip_while(|x| x.is_empty());
-        let location_str = it.next().ok_or_else(|| ParsingError::MissingLocation)?;
+        let location_str = it.next().ok_or(ParsingError::MissingLocation)?;
         let (file, line, function, object) = split_location(location_str)?;
         let message: String = join(it, " ");
 
@@ -399,7 +399,7 @@ mod tests {
 
         let e1 = "e:00:00.007773544  8874 0x558951015c00 INFO                GST_INIT gst.c:510:init_pre: Init";
         match Entry::new(e1) {
-            Ok(_) => assert!(false),
+            Ok(_) => unreachable!(),
             Err(e) => assert_eq!(
                 e,
                 ParsingError::InvalidTimestamp {
@@ -411,7 +411,7 @@ mod tests {
 
         let e1 = ":00:00.007773544  8874 0x558951015c00 INFO                GST_INIT gst.c:510:init_pre: Init";
         match Entry::new(e1) {
-            Ok(_) => assert!(false),
+            Ok(_) => unreachable!(),
             Err(e) => assert_eq!(
                 e,
                 ParsingError::InvalidTimestamp {
@@ -423,7 +423,7 @@ mod tests {
 
         let e1 = "8874 0x558951015c00 INFO                GST_INIT gst.c:510:init_pre: Init";
         match Entry::new(e1) {
-            Ok(_) => assert!(false),
+            Ok(_) => unreachable!(),
             Err(e) => assert_eq!(
                 e,
                 ParsingError::MissingToken {
@@ -439,13 +439,13 @@ mod tests {
     fn pid() {
         let e1 = "00:00:00.007773544 ";
         match Entry::new(e1) {
-            Ok(_) => assert!(false),
+            Ok(_) => unreachable!(),
             Err(e) => assert_eq!(e, ParsingError::MissingToken { t: Token::PID }),
         };
 
         let e1 = "00:00:00.007773544  8fuz874 0x558951015c00 INFO                GST_INIT gst.c:510:init_pre: Init";
         match Entry::new(e1) {
-            Ok(_) => assert!(false),
+            Ok(_) => unreachable!(),
             Err(e) => assert_eq!(
                 e,
                 ParsingError::InvalidPID {
@@ -459,7 +459,7 @@ mod tests {
     fn thread() {
         let e1 = "00:00:00.007773544  8874 ";
         match Entry::new(e1) {
-            Ok(_) => assert!(false),
+            Ok(_) => unreachable!(),
             Err(e) => assert_eq!(e, ParsingError::MissingToken { t: Token::Thread }),
         };
     }
@@ -468,13 +468,13 @@ mod tests {
     fn debug_level() {
         let e1 = "00:00:00.007773544  8874 0x558951015c00 ";
         match Entry::new(e1) {
-            Ok(_) => assert!(false),
+            Ok(_) => unreachable!(),
             Err(e) => assert_eq!(e, ParsingError::MissingToken { t: Token::Level }),
         };
 
         let e1 = "00:00:00.007773544  8874 0x558951015c00 FUZZLEVEL                GST_INIT gst.c:510:init_pre: Init";
         match Entry::new(e1) {
-            Ok(_) => assert!(false),
+            Ok(_) => unreachable!(),
             Err(e) => assert_eq!(
                 e,
                 ParsingError::InvalidDebugLevel {
@@ -488,7 +488,7 @@ mod tests {
     fn category() {
         let e1 = "00:00:00.007773544  8874 0x558951015c00 INFO";
         match Entry::new(e1) {
-            Ok(_) => assert!(false),
+            Ok(_) => unreachable!(),
             Err(e) => assert_eq!(e, ParsingError::MissingToken { t: Token::Category }),
         };
     }
@@ -497,13 +497,13 @@ mod tests {
     fn location() {
         let e1 = "00:00:00.007773544  8874 0x558951015c00 INFO GST_INIT";
         match Entry::new(e1) {
-            Ok(_) => assert!(false),
+            Ok(_) => unreachable!(),
             Err(e) => assert_eq!(e, ParsingError::MissingLocation {}),
         };
 
         let e1 = "00:00:00.007773544  8874 0x558951015c00 INFO GST_INIT gst.c";
         match Entry::new(e1) {
-            Ok(_) => assert!(false),
+            Ok(_) => unreachable!(),
             Err(e) => assert_eq!(
                 e,
                 ParsingError::MissingToken {
@@ -514,7 +514,7 @@ mod tests {
 
         let e1 = "00:00:00.007773544  8874 0x558951015c00 INFO GST_INIT gst.c:fuzz";
         match Entry::new(e1) {
-            Ok(_) => assert!(false),
+            Ok(_) => unreachable!(),
             Err(e) => assert_eq!(
                 e,
                 ParsingError::InvalidLineNumber {
@@ -525,13 +525,13 @@ mod tests {
 
         let e1 = "00:00:00.007773544  8874 0x558951015c00 INFO GST_INIT gst.c:510";
         match Entry::new(e1) {
-            Ok(_) => assert!(false),
+            Ok(_) => unreachable!(),
             Err(e) => assert_eq!(e, ParsingError::MissingToken { t: Token::Function }),
         };
 
         let e1 = "00:00:00.007773544  8874 0x558951015c00 INFO GST_INIT gst.c:510:";
         match Entry::new(e1) {
-            Ok(_) => assert!(false),
+            Ok(_) => unreachable!(),
             Err(e) => assert_eq!(e, ParsingError::MissingToken { t: Token::Object }),
         };
     }
