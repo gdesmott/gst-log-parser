@@ -203,6 +203,13 @@ impl Flow {
             _ => return,
         };
 
+        let mut fg = Figure::new();
+        let axes = fg
+            .axes2d()
+            .set_title(title, &[])
+            .set_x_label("time (ms)", &[])
+            .set_y_label("pts (ms)", &[]);
+
         for pad in self.pads.values() {
             let data = if self.command == Command::PlotPts {
                 &pad.pts
@@ -214,13 +221,6 @@ impl Flow {
                 continue;
             }
 
-            let mut fg = Figure::new();
-            let axes = fg
-                .axes2d()
-                .set_title(title, &[])
-                .set_x_label("time (ms)", &[])
-                .set_y_label("pts (ms)", &[]);
-
             let caption = format!("{}", pad);
 
             let mut x = Vec::new();
@@ -231,10 +231,10 @@ impl Flow {
             }
 
             axes.points(&x, &y, &[Caption(&caption)]);
-
-            fg.set_post_commands("pause mouse close");
-            fg.show().unwrap();
         }
+
+        fg.set_post_commands("pause mouse close");
+        fg.show().unwrap();
     }
 }
 
