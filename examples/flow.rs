@@ -108,7 +108,7 @@ impl Flow {
         }
     }
 
-    fn parse(&mut self, s: &Structure) {
+    fn parse(&mut self, s: &Structure) -> anyhow::Result<()> {
         match s.name() {
             "new-element" => {
                 let idx = s.get::<u32>("ix").unwrap();
@@ -125,22 +125,25 @@ impl Flow {
                     .entry(idx)
                     .or_insert_with(|| Pad::new(s.get::<&str>("name").unwrap(), element_name));
             }
-            "buffer" => {
-                self.handle_buffer(s);
-            }
+            "buffer" => self.handle_buffer(s)?,
             _ => {}
         }
+
+        Ok(())
     }
 
-    fn handle_buffer(&mut self, s: &Structure) {
+    fn handle_buffer(&mut self, s: &Structure) -> anyhow::Result<()> {
+        let pad_ix = s.get::<u32>("pad-ix").unwrap();
         let pad = self
             .pads
-            .get_mut(&s.get::<u32>("pad-ix").unwrap())
-            .expect("Unknown pad");
+            .get_mut(&pad_ix)
+            .ok_or(anyhow::anyhow!("Unknown pad-ix {}", pad_ix))?;
+
+        let element_ix = s.get::<u32>("element-ix").unwrap();
         let element = self
             .elements
-            .get(&s.get::<u32>("element-ix").unwrap())
-            .expect("Unknown element");
+            .get(&element_ix)
+            .ok_or(anyhow::anyhow!("Unknown element-ix {}", element_ix))?;
 
         if pad.element_name.is_none() {
             pad.element_name = Some(element.name.clone());
@@ -189,6 +192,8 @@ impl Flow {
         }
 
         pad.last_buffer_ts = Some(ts);
+
+        Ok(())
     }
 
     fn plot(&self) {
@@ -247,7 +252,9 @@ fn main() -> Result<(), Error> {
             Some(s) => s,
         };
 
-        flow.parse(&s);
+        if let Err(err) = flow.parse(&s) {
+            eprintln!("failed to handle {}: {}", entry, err);
+        }
     }
 
     flow.plot();
