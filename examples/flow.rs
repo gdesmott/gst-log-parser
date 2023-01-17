@@ -18,6 +18,8 @@ use std::fs::File;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
+use regex::Regex;
+
 #[derive(StructOpt, Debug, PartialEq, Copy, Clone)]
 #[structopt(name = "command")]
 enum Command {
@@ -41,6 +43,18 @@ enum Command {
 struct Opt {
     #[structopt(parse(from_os_str))]
     input: PathBuf,
+    #[structopt(
+        name = "include-filter",
+        long = "include-filter",
+        about = "Regular expression for element:pad names that should be included"
+    )]
+    include_filter: Option<String>,
+    #[structopt(
+        name = "exclude-filter",
+        long = "exclude-filter",
+        about = "Regular expression for element:pad names that should be excluded"
+    )]
+    exclude_filter: Option<String>,
     #[structopt(subcommand)]
     command: Command,
 }
@@ -196,7 +210,7 @@ impl Flow {
         Ok(())
     }
 
-    fn plot(&self) {
+    fn plot(&self, include_filter: Option<Regex>, exclude_filter: Option<Regex>) {
         let title = match self.command {
             Command::PlotPts => "buffer pts",
             Command::PlotDts => "buffer dts",
@@ -211,6 +225,20 @@ impl Flow {
             .set_y_label("pts (ms)", &[]);
 
         for pad in self.pads.values() {
+            let pad_name = format!("{}:{}", pad.name, pad.element_name.as_deref().unwrap_or(""));
+
+            if let Some(include_filter) = include_filter.as_ref() {
+                if !include_filter.is_match(&pad_name) {
+                    continue;
+                }
+            }
+
+            if let Some(exclude_filter) = exclude_filter.as_ref() {
+                if exclude_filter.is_match(&pad_name) {
+                    continue;
+                }
+            }
+
             let data = if self.command == Command::PlotPts {
                 &pad.pts
             } else {
@@ -257,7 +285,10 @@ fn main() -> Result<(), Error> {
         }
     }
 
-    flow.plot();
+    let include_filter = opt.include_filter.map(|f| Regex::new(&f).unwrap());
+    let exclude_filter = opt.exclude_filter.map(|f| Regex::new(&f).unwrap());
+
+    flow.plot(include_filter, exclude_filter);
 
     Ok(())
 }
