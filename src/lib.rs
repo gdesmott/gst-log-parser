@@ -270,7 +270,7 @@ impl fmt::Display for Entry {
             self.file,
             self.line,
             self.function,
-            self.object.clone().unwrap_or_else(|| "".to_string()),
+            self.object.clone().unwrap_or_default(),
             self.message
         )
     }
