@@ -69,7 +69,7 @@ fn generate() -> Result<bool, std::io::Error> {
                 .entry(comp_name.to_string())
                 .or_insert_with(Count::new);
 
-            match event {
+            match event.as_str() {
                 "EmptyThisBuffer" => count.empty_call += 1,
                 "EmptyBufferDone" => count.empty_done += 1,
                 "FillThisBuffer" => count.fill_call += 1,

@@ -185,7 +185,7 @@ fn generate() -> Result<bool> {
                 .or_insert_with(|| FrameInComponent::new(comp_name));
             let cb = cbs.entry(comp_name.to_string()).or_insert_with(CbTime::new);
 
-            match event {
+            match event.as_str() {
                 // input
                 "EmptyThisBuffer" => {
                     comp.empty_ts.push(entry.ts);
