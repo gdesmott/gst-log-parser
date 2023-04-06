@@ -83,13 +83,10 @@ fn generate() -> Result<bool, std::io::Error> {
     // Mark the top entries
     let n = entries.len() * opt.top / 100;
 
-    let entries = entries.into_iter().enumerate().map(|(i, e)| {
-        if i < n as usize {
-            TsEntry::new_top(e)
-        } else {
-            e
-        }
-    });
+    let entries = entries
+        .into_iter()
+        .enumerate()
+        .map(|(i, e)| if i < n { TsEntry::new_top(e) } else { e });
 
     let entries = if opt.sort {
         // Sort by decreasing diff
@@ -119,7 +116,7 @@ fn generate() -> Result<bool, std::io::Error> {
             e.entry.file,
             e.entry.line,
             e.entry.function,
-            e.entry.object.clone().unwrap_or_else(|| "".to_string()),
+            e.entry.object.clone().unwrap_or_default(),
             e.entry.message
         );
     }
