@@ -123,7 +123,7 @@ impl Flow {
     }
 
     fn parse(&mut self, s: &Structure) -> anyhow::Result<()> {
-        match s.name() {
+        match s.name().as_str() {
             "new-element" => {
                 let idx = s.get::<u32>("ix").unwrap();
                 self.elements

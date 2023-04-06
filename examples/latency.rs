@@ -56,7 +56,7 @@ fn main() -> Result<(), Error> {
             None => continue,
             Some(s) => s,
         };
-        match s.name() {
+        match s.name().as_str() {
             "element-latency" => {
                 let count = elt_latency
                     .entry(s.get::<String>("src").expect("Missing 'src' field"))
