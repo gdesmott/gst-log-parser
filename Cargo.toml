@@ -35,6 +35,9 @@ name = "track-frames-omx"
 [[example]]
 name = "ts-diff"
 
+[[example]]
+name = "thread-split"
+
 [dev-dependencies]
 structopt = "0.3"
 colored = "2.0"
