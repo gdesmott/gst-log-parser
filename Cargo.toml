@@ -41,4 +41,4 @@ name = "thread-split"
 [dev-dependencies]
 structopt = "0.3"
 colored = "2.0"
-gnuplot = "0.0.37"
+gnuplot = "0.0.41"
