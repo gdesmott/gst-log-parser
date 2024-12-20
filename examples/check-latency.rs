@@ -8,7 +8,6 @@
 
 // Generate input logs with: GST_DEBUG="GST_TRACER:7" GST_TRACERS=latency
 
-use failure::Error;
 use gst_log_parser::parse;
 use gstreamer::{ClockTime, DebugLevel};
 use std::fs::File;
@@ -40,7 +39,7 @@ struct Opt {
     command: Command,
 }
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<(), anyhow::Error> {
     let opt = Opt::from_args();
     let input = File::open(opt.input)?;
 

@@ -8,7 +8,6 @@
 
 // Generate input logs with: GST_DEBUG="GST_TRACER:7" GST_TRACERS=stats
 
-use failure::Error;
 use gnuplot::*;
 use gst_log_parser::parse;
 use gstreamer::{ClockTime, DebugLevel, Structure};
@@ -266,7 +265,7 @@ impl Flow {
     }
 }
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<(), anyhow::Error> {
     let opt = Opt::from_args();
     let input = File::open(opt.input)?;
     let mut flow = Flow::new(opt.command);

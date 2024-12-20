@@ -15,11 +15,11 @@ use std::io::Read;
 use std::str;
 use std::str::FromStr;
 
-use failure::Fail;
 use gst::{ClockTime, DebugLevel, Structure};
 use gstreamer as gst;
 use lazy_static::lazy_static;
 use regex::Regex;
+use thiserror::Error;
 
 #[derive(Debug, PartialEq)]
 pub enum TimestampField {
@@ -43,19 +43,19 @@ pub enum Token {
     Object,
 }
 
-#[derive(Debug, Fail, PartialEq)]
+#[derive(Debug, Error, PartialEq)]
 pub enum ParsingError {
-    #[fail(display = "invalid debug level: {}", name)]
+    #[error("invalid debug level: {}", name)]
     InvalidDebugLevel { name: String },
-    #[fail(display = "invalid timestamp: {} : {:?}", ts, field)]
+    #[error("invalid timestamp: {} : {:?}", ts, field)]
     InvalidTimestamp { ts: String, field: TimestampField },
-    #[fail(display = "missing token: {:?}", t)]
+    #[error("missing token: {:?}", t)]
     MissingToken { t: Token },
-    #[fail(display = "invalid PID: {}", pid)]
+    #[error("invalid PID: {}", pid)]
     InvalidPID { pid: String },
-    #[fail(display = "missing location")]
+    #[error("missing location")]
     MissingLocation,
-    #[fail(display = "invalid line number: {}", line)]
+    #[error("invalid line number: {}", line)]
     InvalidLineNumber { line: String },
 }
 
