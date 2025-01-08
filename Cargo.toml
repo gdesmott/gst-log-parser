@@ -10,7 +10,7 @@ keywords = ["gstreamer", "multimedia"]
 description = "Crate providing a convenient API to parse GStreamer logs"
 
 [dependencies]
-itertools = "0.13"
+itertools = "0.14"
 gstreamer = "0.23"
 regex = "1.3"
 lazy_static = "1.4"
@@ -40,5 +40,5 @@ name = "thread-split"
 
 [dev-dependencies]
 structopt = "0.3"
-colored = "2.0"
+colored = "3.0"
 gnuplot = "0.0.44"
