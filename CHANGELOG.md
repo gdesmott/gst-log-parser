@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1](https://github.com/gdesmott/gst-log-parser/compare/v0.5.0...v0.5.1) - 2026-02-16
+
+### Other
+
+- stop ignoring test-logs/*.log
+- update to gst 0.24
+- update
+- add glcontext
+- update deps
+
 ## [0.4.1](https://github.com/gdesmott/gst-log-parser/compare/v0.4.0...v0.4.1) - 2024-02-09
 
 ### Other
